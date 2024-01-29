@@ -1,5 +1,5 @@
 """
-    Training script for GPT-like models. Use this along with the output of gen_run !
+    Like train.py, but for the LSTM model. Usage is similar.
 """
 from modules import *
 import torch, torch.optim,os, argparse,json, pathlib,random, shutil

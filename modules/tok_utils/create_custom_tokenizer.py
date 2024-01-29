@@ -1,11 +1,8 @@
-from modules import tokenizer
+from .. import tokenizer
 import os
 from transformers import AutoTokenizer
 
 #==================== TEXT PATH ====================
-txt_path = 'datavol/vi.txt'
-
-toke_base = AutoTokenizer.from_pretrained('gpt2',use_fast=True)
 
 
 def read_in_chunks(file_path, chunk_size=10*1024*1024):  # Default chunk size is 10MB
@@ -66,8 +63,20 @@ def read_in_lines(file_path, batch_size=512, phrase_size=2048):  # phrase_size i
             yield lines
 
 
+def create_tokenizer(txt_path, save_directory = None,vocab_size=50257):
+    """
+        Creates a custom BPE huggingface tokenizer from a .txt file. 
+        The tokenizer is saved in a folder with the same name as the .txt file, in the same directory.
+    """
+    if save_directory is None:
+        save_directory = os.path.dirname(txt_path)
 
+    toke_base = AutoTokenizer.from_pretrained('gpt2',use_fast=True)
+    # .txt dataset (full dataset in ht txt file, for now.)
+    toke_mine= toke_base.train_new_from_iterator(read_in_lines(txt_path),vocab_size=vocab_size)
+    toke_mine.save_pretrained(os.path.join(save_directory, f'{os.path.basename(txt_path).split(".")[0]}_tokenizer'))
 
-# .txt dataset (full dataset in ht txt file, for now.)
-toke_mine= toke_base.train_new_from_iterator(read_in_lines(txt_path),vocab_size=50257)
-toke_mine.save_pretrained(os.path.join(os.path.dirname(txt_path), f'{os.path.basename(txt_path).split(".")[0]}_tokenizer'))
+if __name__=="__main__":
+    txt_path = 'datavol/vi.txt'
+
+    create_tokenizer(txt_path, 'vi',vocab_size=50257)

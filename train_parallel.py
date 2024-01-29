@@ -1,5 +1,6 @@
 """
-    Training script for GPT-like models. Use this along with the output of gen_run !
+    Training script for GPT-like models. Same as train_script but allows for parallel training on multiple GPUs.
+    Not very optimized, prefer train_script.py for now.
 """
 from modules import *
 import torch, torch.optim,os, argparse,json, pathlib,random, shutil
