@@ -1,0 +1,7 @@
+h5py
+numpy
+torch
+torchenhanced==0.2.14
+tqdm
+transformers
+wandb

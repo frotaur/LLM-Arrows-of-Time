@@ -1,0 +1,52 @@
+apiVersion: run.ai/v1
+kind: RunaiJob
+metadata:
+  name: it-training # MUST BE SAME NAME of the "release" label under spec>templace>label bellow in order to get logs into the Run:AI dashboard
+  labels:
+    priorityClassName: "build" # "BUILD" : interactive, max 1 gpu 12hr. If not specified; it has no GPU limit, but might be killed and restarted at any time.
+    user: vpapadop
+spec:
+  template:
+    metadata:
+      labels:
+        user: vassilis.papadopoulos # User e.g. firstname.lastname
+        release: it-training # MUST BE SAME NAME of your pod "name" specify in the metadata above in order to get logs into the Run:AI dashboard
+    spec:
+      schedulerName: runai-scheduler
+      restartPolicy: Never # WHat happens if command returns other than 0
+      securityContext:
+        # In order to access your PVC though NFS protocol, you must run your container with the correct UID/GID
+        # If you run you container as root, you won't be able to read or write to you persistent volune (PVC)
+        runAsUser: 135750 # insert uid found in people.epfl in admistrative data
+        runAsGroup: 10776 # insert gid as found in people.epfl in admistrative data
+        fsGroup: 10776 # insert gid as found in people.epfl in admistrative data
+      containers:
+      - name: container-name
+        imagePullPolicy: Always # <-- Add this line to always pull the latest image
+        image: registry.rcp.epfl.ch/vassilis-test/it-training:v0 # path to you docker image in a registry
+        workingDir : /app # path to a temporary local folder in your container with rw access (not persisten)
+        command: ["/bin/bash"]
+        args:
+        - "-c"
+        - "python train_script.py -d 'cuda' TrainParams/it_mini_128_backwards.json"
+        env:
+          # General Environment Variable that can be declared and used inside the container by your code
+          - name: HOME
+            value: "/app"
+          - name: WANDB_API_KEY
+            value: "56d523ca374cfdabb6ab7533859bce37b137fb6c"
+        resources:
+          limits:
+            nvidia.com/gpu: 1
+        volumeMounts:
+          - mountPath: /app/datavol
+            name: datavol #Reference to the volume name declared below under "Volumes" section
+      volumes:
+        # multiple Persistent Volume Claim (PVC) can be declare in this section
+        # to list all pvc you have access, run "kubectl get pvc"
+        - name: datavol # NAME of the volume that is used in the volumeMounts section aboce
+          persistentVolumeClaim:
+            claimName: runai-csft-vpapadop-scratch # Name of the PVC you can get
+        # - name: VOLUME-NAME-REFERENCE2
+        #   persistentVolumeClaim:
+        #     claimName: runai-pv-VOLUME2

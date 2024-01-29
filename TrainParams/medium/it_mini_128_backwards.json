@@ -1,0 +1,31 @@
+{
+    "model_params": {
+        "vocab_size": 50257,
+        "n_layers": 12,
+        "n_heads": 12,
+        "embed_dim": 768,
+        "attn_length": 128,
+        "mlp_ratio": 4.0,
+        "dropout": 0.1,
+        "embd_dropout": null
+    },
+    "training_params": {
+        "dataset_folder": "datavol/fullish_it_tokenized",
+        "batch_size": 300,
+        "aggregate": 1,
+        "backwards": true,
+        "steps_to_train": null,
+        "backup_every": 25000,
+        "step_log": 250,
+        "valid_steps": 1000,
+        "state_save_loc":"datavol/runs"
+    },
+    "optim_params": {
+        "lr": 0.0005,
+        "warmup_steps": 2000,
+        "oscil_steps": 50000,
+        "lr_shrink": 0.95,
+        "lr_init": 1e-06,
+        "lr_min": 1e-06
+    }
+}
