@@ -18,8 +18,7 @@ import numpy as np
 if __name__=='__main__':
     project_name = 'BackPerplexityResilient'
     cur_path = pathlib.Path(__file__).parent.absolute().as_posix()
-    parser = argparse.ArgumentParser(description="Starts training of Predictor model given a JSON config file. \
-                                     Use 'gen_run.py' to create a JSON config file.")
+    parser = argparse.ArgumentParser(description="Starts training of Predictor model given a JSON config file.")
     parser.add_argument("file_location", help="Path to the JSON config file. Relative to where you launch the script from.")
     parser.add_argument("-d", "--device", type=str, default='cpu', help="Device string, e.g. 'cuda:0' or 'cpu'")
     parser.add_argument("-t", "--tokenizer_path", help="Path for the tokenizer to use (only used for logging snippets). Relative to the train_script folder.")

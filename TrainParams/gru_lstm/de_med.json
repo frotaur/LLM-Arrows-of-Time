@@ -1,25 +1,22 @@
 {
     "model_params": {
         "vocab_size": 50257,
-        "n_layers": 6,
-        "n_heads": 6,
-        "embed_dim": 192,
-        "attn_length": 256,
-        "mlp_ratio": 4.0,
-        "dropout": 0.1,
-        "embd_dropout": null
+        "n_layers": 1,
+        "embed_dim": 512,
+        "desired_attn_length": 256,
+        "dropout": 0.0,
+        "embd_dropout": 0.1
     },
     "training_params": {
-        "dataset_folder": "datavol/vassilis/french/french.h5",
+        "dataset_folder": "datavol/deutsch/deutsch.h5",
         "batch_size": 200,
         "aggregate": 1,
         "backwards": false,
         "steps_to_train": null,
-        "save_every": 3000,
-        "backup_every": 15000,
-        "step_log": 400,
+        "backup_every": 5000,
+        "step_log": 200,
         "valid_steps": 1000,
-        "state_save_loc": "datavol/vassilis/runs"
+        "state_save_loc": "runs"
     },
     "optim_params": {
         "lr": 0.0001,

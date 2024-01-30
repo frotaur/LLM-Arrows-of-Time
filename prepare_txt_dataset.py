@@ -40,4 +40,5 @@ if __name__=='__main__':
     tokenizer_folder = '' # Folder where the tokenizer will be saved
     tokenizer_name = '' # Name of the tokenizer that will be saved
 
+    ################## DO NOT MODIFY BELOW ##################
     txt_to_h5(txt_path, out_h5_folder, tokenizer_folder, tokenizer_name)

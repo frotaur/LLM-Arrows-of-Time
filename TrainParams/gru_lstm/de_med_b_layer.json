@@ -8,7 +8,7 @@
         "embd_dropout": 0.05
     },
     "training_params": {
-        "dataset_folder": "datavol/vassilis/deutsch/deutsch.h5",
+        "dataset_folder": "datavol/deutsch/deutsch.h5",
         "batch_size": 250,
         "aggregate": 1,
         "backwards": true,
@@ -16,7 +16,7 @@
         "backup_every": 5000,
         "step_log": 200,
         "valid_steps": 1000,
-        "state_save_loc": "datavol/vassilis/runs"
+        "state_save_loc": "runs"
     },
     "optim_params": {
         "lr": 0.0001,

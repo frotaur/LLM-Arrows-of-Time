@@ -10,7 +10,7 @@
         "embd_dropout": null
     },
     "training_params": {
-        "dataset_folder": "datavol/vassilis/french/french.h5",
+        "dataset_folder": "datavol/french/french.h5",
         "batch_size": 250,
         "aggregate": 2,
         "backwards": false,
@@ -19,7 +19,7 @@
         "backup_every": 15000,
         "step_log": 200,
         "valid_steps": 1000,
-        "state_save_loc": "datavol/vassilis/runs"
+        "state_save_loc": "runs"
     },
     "optim_params": {
         "lr": 0.0001,

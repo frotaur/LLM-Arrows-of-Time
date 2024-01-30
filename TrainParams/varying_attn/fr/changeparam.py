@@ -6,7 +6,9 @@ def modifparam():
         if file.endswith('.json'):
             with open(file, 'r') as f:
                 data = json.load(f)
-                data['optim_params']['oscil_steps'] = 300000
+                data['training_params']["dataset_folder"] = "datavol/french/french.h5"
+                data['training_params']["state_save_loc"] = "runs"
+
                 with open(file, 'w') as f:
                     json.dump(data, f, indent=4)
 
