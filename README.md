@@ -1,10 +1,5 @@
-# BackPerplexity
-Investigate perplexity of LLM's when trained backward vs forward
-
-
-Code used for the Natural Language experiments of the paper 'Arrows of Time in Large Langugage Models'.
-
-To reproduce experiments, the following scripts can be used :
+# Training LLMs on Natural Languages
+This repo contains code used for the Natural Language experiments of the paper 'Arrows of Time in Large Langugage Models'.
 
 ## Tokenization
 The scrip `tokenize_to_h5.py` can be used to prepare a dataset for training. Given a .txt file, it will train a BPE tokenizer on it, then use it to tokenize the text, and save the tokenized dataset in `.h5` format.
