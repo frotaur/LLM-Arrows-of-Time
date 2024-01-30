@@ -1,5 +1,11 @@
 """
     Training script for GPT-like models. Use this along with the output of gen_run !
+
+    Usage : python train_script.py <path_to_json_config_file> -d <device> -t <tokenizer_name> -p <project_name> -s
+
+    Example : python train_script.py TrainParams/params.json -d cuda:0 -t fr -p BackPerplexityResilient -s
+
+    Note : uses wandb, so you need to have a wandb account and be logged in.
 """
 from modules import *
 import torch, torch.optim,os, argparse,json, pathlib,random, shutil
@@ -7,10 +13,11 @@ from torch.utils.data import Subset
 from torchenhanced import CosineWarmup
 import numpy as np
 
-project_name = 'BackPerplexityResilient'
-cur_path = pathlib.Path(__file__).parent.absolute().as_posix()
+
 
 if __name__=='__main__':
+    project_name = 'BackPerplexityResilient'
+    cur_path = pathlib.Path(__file__).parent.absolute().as_posix()
     parser = argparse.ArgumentParser(description="Starts training of Predictor model given a JSON config file. \
                                      Use 'gen_run.py' to create a JSON config file.")
     parser.add_argument("file_location", help="Path to the JSON config file. Relative to where you launch the script from.")
@@ -69,7 +76,7 @@ if __name__=='__main__':
     else :
         print('Dataset already copied to current folder, using this one.')
     
-    motherDataset = TokenTexth5(h5_file=destination_path, attn_length=model_params['attn_length'], backwards=backwards)
+    motherDataset = TokenTextBOS(h5_file=destination_path, attn_length=model_params['attn_length'], backwards=backwards)
     indices = np.arange(len(motherDataset))
     rng.shuffle(indices)
     motherDataset = Subset(motherDataset, list(indices)) # Shuffled dataset

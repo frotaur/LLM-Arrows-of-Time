@@ -1,7 +1,6 @@
 import h5py , os, torch
 from pathlib import Path
 from tqdm import tqdm
-from modules import tokenizer
 from transformers import AutoTokenizer
 
 def make_h5(pt_data_folder, destination_folder = None, view_tokenizer : AutoTokenizer = None):
@@ -35,7 +34,7 @@ def make_h5(pt_data_folder, destination_folder = None, view_tokenizer : AutoToke
                     tensor = torch.load(pt_file,map_location=torch.device('cpu'))
                     length = tensor.shape[1]
 
-                    print('snippet', toki.detokenize(tensor[:,:40]))
+                    print('snippet : \n', view_tokenizer.detokenize(tensor[:,:40]))
                     # Resize the dataset to accommodate the new data
                     dset.resize((current_index + length,))
                     

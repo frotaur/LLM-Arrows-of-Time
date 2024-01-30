@@ -141,18 +141,20 @@ class HfTokenizer(Tokenizer):
     def __init__(self, *, m_name=None, m_path=None, st_index=None, et_index=None): # start token index, end token index
         (self.hf_tokenizer, self.m_name) = (load_pretrained_hf_tokenizer(m_name=m_name, m_path=m_path), m_name)
         self.vs = self.hf_tokenizer.vocab_size #
-        if 'facebook' in m_name: self.vs += 7 # 'facebook': opt models
+        if(self.m_name is None):
+            self.m_name=''
+        
         (self.st_index, self.et_index) = (None, None) # start and end token indices (may need to be hacked)
 
     def tokenize(self, s, **params): 
-        if self.m_name.startswith('gpt2') or self.m_name.startswith('facebook'): s = sanitize_quotes(s) # {?} a bit hacky
+        if self.m_name.startswith('gpt2'): s = sanitize_quotes(s) # {?} a bit hacky
         return self.hf_tokenizer(s, return_tensors='pt', verbose=True).input_ids # [1, t]
 
     def detokenize(self, tokens, *, join=True):
         tokens = tokens.to(dtype=torch.int64) # To convert other types in case
         if len(tokens.shape) > 1: tokens = tokens.view(-1) # [b, t] -> [b * t]
         t_strings = [self.hf_tokenizer.decode(tokens)]
-        if self.m_name.startswith('bert'): t_strings = [clean_bert_token(t_string) for t_string in t_strings] # {?} a bit hacky
+
         return ''.join(t_strings) if join else t_strings
 
 def load_pretrained_hf_tokenizer(*, m_name:str=None, m_path:str=None): 

@@ -1,7 +1,7 @@
 """
     All the pipeline to tokenize big files
 """
-from modules import tokenizer
+from .. import tokenizer
 import  os, torch, argparse, shutil,pathlib
 from tqdm import tqdm
 
@@ -11,7 +11,6 @@ def replace_unusual_terminators(filename):
     """Replace unusual line terminators with standard newline."""
     LS = '\u2028'
     PS = '\u2029'
-    changes_made = False
 
     with open(filename, 'r', encoding='utf-8',errors='ignore') as f:
         data = f.read()
@@ -28,7 +27,6 @@ def main_replace_unusual(folder_path):
             filepath = os.path.join(folder_path, filename)
             replace_unusual_terminators(filepath)
 
-                # print(f"Replaced terminators in {filename}")
 
 def split_file(filename):
     """Split a file into multiple 500MB parts while ensuring split occurs at a newline."""
@@ -124,7 +122,6 @@ def replace_unusual_terminators(filename):
     """Replace unusual line terminators with standard newline."""
     LS = '\u2028'
     PS = '\u2029'
-    changes_made = False
 
     with open(filename, 'r', encoding='utf-8') as f:
         data = f.read()
@@ -224,19 +221,22 @@ def separate_dataset(folder_path):
         for file in to_move:
             shutil.move(file, cur_path)
 
-def tokenize_folder(folder_path, tokenizer_name=None, no_preprocess=False):
+def tokenize_folder(folder_path, tokenizer_path=None, no_preprocess=False):
     """
         Pipeline for tokenizing text in a folder. Is NOT recursive, will
         act only on .txt files contained in folder_path.
+
+        Args:
+        folder_path : Path to the folder containing the .txt files to tokenize.
+        tokenizer_path : Path to the tokenizer to use. If None, will use the default GPT2 tokenizer.
+        no_preprocess : If True, will not do the splitting and sanitization of the files. Default is False. (use True if tokenization crashed after sanitization, to not repeat it)
     """
-    if(tokenizer_name is not None):
-        tokenizer_path = pathlib.Path(__file__).parent.as_posix()
-        tokenizer_path = os.path.join(tokenizer_path,'modules','tokenizers',tokenizer_name)
-    else :
+    if(tokenizer_path is None):
         print("CAUTION ! USING DEFAULT GPT2")
         tokenizer_name = 'gpt2'
-        tokenizer_path = None
-    
+    else :
+        tokenizer_name = os.path.basename(tokenizer_path)
+
     toki = tokenizer.get_tokenizer(m_path=tokenizer_path,m_name=tokenizer_name)
     if(not no_preprocess):
         # Only do if no_preprocess is false

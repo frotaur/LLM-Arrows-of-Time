@@ -1,4 +1,3 @@
-from .. import tokenizer
 import os
 from transformers import AutoTokenizer
 
@@ -63,18 +62,27 @@ def read_in_lines(file_path, batch_size=512, phrase_size=2048):  # phrase_size i
             yield lines
 
 
-def create_tokenizer(txt_path, save_directory = None,vocab_size=50257):
+def create_tokenizer(txt_path, save_directory = None, tokenizer_name=None, vocab_size=50257):
     """
-        Creates a custom BPE huggingface tokenizer from a .txt file. 
-        The tokenizer is saved in a folder with the same name as the .txt file, in the same directory.
+        Creates a custom BPE huggingface tokenizer from a .txt file. The tokenizer is saved as a folder,
+        and can be loaded with the helper function 'get_tokenizer(m_path=<tokenizer folder>)' from modules/tokenizer.py.
+
+        Args :
+        txt_path : Path to the .txt file to use for training the tokenizer.
+        save_directory : Directory where the tokenizer will be saved. If None, will be saved in the same directory as the .txt file.
+        tokenizer_name : Name of the tokenizer. If None, will be the name of the .txt file, followed by _tokenizer.
+        vocab_size : Size of the vocabulary to use for the tokenizer. Default is 50257, which is the GPT2 vocabulary size.
     """
     if save_directory is None:
         save_directory = os.path.dirname(txt_path)
 
+    if tokenizer_name is None:
+        tokenizer_name = f'{os.path.basename(txt_path).split(".")[0]}_tokenizer'
+
     toke_base = AutoTokenizer.from_pretrained('gpt2',use_fast=True)
     # .txt dataset (full dataset in ht txt file, for now.)
     toke_mine= toke_base.train_new_from_iterator(read_in_lines(txt_path),vocab_size=vocab_size)
-    toke_mine.save_pretrained(os.path.join(save_directory, f'{os.path.basename(txt_path).split(".")[0]}_tokenizer'))
+    toke_mine.save_pretrained(os.path.join(save_directory, tokenizer_name))
 
 if __name__=="__main__":
     txt_path = 'datavol/vi.txt'
