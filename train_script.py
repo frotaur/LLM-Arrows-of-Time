@@ -22,9 +22,9 @@ if __name__=='__main__':
                                      Use 'gen_run.py' to create a JSON config file.")
     parser.add_argument("file_location", help="Path to the JSON config file. Relative to where you launch the script from.")
     parser.add_argument("-d", "--device", type=str, default='cpu', help="Device string, e.g. 'cuda:0' or 'cpu'")
-    parser.add_argument("-t", "--tokenizer_name", help="Name of the tokenizer to use. Use prefix like 'fr', 'en' or 'fi'")
+    parser.add_argument("-t", "--tokenizer_path", help="Path for the tokenizer to use (only used for logging snippets). Relative to the train_script folder.")
     parser.add_argument("-p", "--project_name", help="Name of the project to log to. Default is 'BackPerplexityResilient'")
-    parser.add_argument("-s", "--no_step_pickup", action="store_true", help="If set, will train for one more epoch. Otherwise, will train up to one epoch total (picking up where it left off)")  
+    parser.add_argument("-s", "--no_step_pickup", action="store_true", help="If set, will train for steps_to_train more steps. Otherwise, will train up to steps_to_train steps (picking up where it left off)")  
     args = parser.parse_args()
 
     run_name = os.path.splitext(os.path.basename(args.file_location))[0]
@@ -35,9 +35,9 @@ if __name__=='__main__':
     if(args.tokenizer_name is not None):
         ## FOR NOW, THE TOKENIZER IS HARDCODED. IF WE NEED DIFFERENT ONES, WE SHALL SEE WHAT TO DO
         tokenizer_path = pathlib.Path(__file__).parent.as_posix()
-        tokenizer_path = os.path.join(tokenizer_path,'modules','tokenizers',f'{args.tokenizer_name}_tokenizer')
-
-        tokenizer = get_tokenizer(m_path=tokenizer_path, m_name=args.tokenizer_name)
+        # tokenizer_path = os.path.join(tokenizer_path,'modules','tokenizers',f'{args.tokenizer_name}_tokenizer')
+        tokenizer_path = os.path.join(tokenizer_path,{args.tokenizer_name})
+        tokenizer = get_tokenizer(m_path=tokenizer_path)
     else :
         print("WARNING TOKENIZER IS GPT2, WILL GIVE GIBBERISH IN VALIDATION")
         tokenizer = get_tokenizer(m_name='gpt2')
