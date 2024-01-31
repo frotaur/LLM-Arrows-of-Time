@@ -4,11 +4,15 @@ Investigate perplexity of LLM's when trained backward vs forward
 
 Code used for the Natural Language experiments of the paper 'Arrows of Time in Large Langugage Models'.
 
-To reproduce experiments, the following scripts can be used :
+Install requirements using `pip install -r requirements.txt`.
+NOTE : On Windows, doing this might install torch without CUDA support. If this is the case, first install pytorch CUDA following instruction on the official [website](https://pytorch.org/), then run `pip install -r requirements.txt`.
+
+Read the following section to learn how to reproduce experiments.
 
 ## Tokenization
 The script `tokenize_to_h5.py` can be used to prepare a dataset for training. Given a .txt file, it will train a BPE tokenizer on it, then use it to tokenize the text, and save the tokenized dataset in `.h5` format.
 
+CC100 datasets can be downloaded [here](https://data.statmt.org/cc-100/). 
 ### Usage :
 To use `tokenize_to_h5.py`, first put a standalone `.txt` file inside a folder. Then, inside `tokenize_to_h5.py`, modify the following :
 ``` 
