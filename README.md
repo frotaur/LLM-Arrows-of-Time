@@ -7,7 +7,7 @@ Code used for the Natural Language experiments of the paper 'Arrows of Time in L
 To reproduce experiments, the following scripts can be used :
 
 ## Tokenization
-The scrip `tokenize_to_h5.py` can be used to prepare a dataset for training. Given a .txt file, it will train a BPE tokenizer on it, then use it to tokenize the text, and save the tokenized dataset in `.h5` format.
+The script `tokenize_to_h5.py` can be used to prepare a dataset for training. Given a .txt file, it will train a BPE tokenizer on it, then use it to tokenize the text, and save the tokenized dataset in `.h5` format.
 
 ### Usage :
 To use `tokenize_to_h5.py`, first put a standalone `.txt` file inside a folder. Then, inside `tokenize_to_h5.py`, modify the following :
@@ -56,6 +56,8 @@ options:
   -s, --no_step_pickup  If set, will train for steps_to_train more steps. Otherwise, will train up to steps_to_train steps (picking up where it left off)
   ```
 
+Example :
+`python train_script.py`
 ### JSON config file
 To run the training script, we need to provide it with a path to the JSON config file. Their format slightly depends if training a GPT, GRU or LSTM model. In a nutshell, they contain all the necessary hyperparameters for a training run.
 
