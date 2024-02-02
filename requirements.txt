@@ -1,5 +1,7 @@
 torch
-torchenhanced
+torchenhanced==0.2.16.2
 transformers
 h5py
 opencv-python
+tqdm
+wandb
