@@ -8,24 +8,24 @@ from torch.utils.data import Subset
 from torchenhanced import CosineWarmup
 import numpy as np
 
-project_name = 'BackPerplexityResilient'
+project_name = 'BackPerplexity'
 cur_path = pathlib.Path(__file__).parent.absolute().as_posix()
 
 if __name__=='__main__':
     parser = argparse.ArgumentParser(description="Starts training of Predictor model given a JSON config file.")
     parser.add_argument("file_location", help="Path to the JSON config file. Relative to where you launch the script from.")
     parser.add_argument('-d','--devices', nargs='+', help='A list of devices')
-    parser.add_argument("-t", "--tokenizer_path", help="Path for the tokenizer to use (only used for logging snippets). Relative to the train_script folder.")
-    parser.add_argument("-p", "--project_name", help="Name of the project to log to. Default is 'BackPerplexityResilient'")
+    parser.add_argument("-t", "--tokenizer_path", type=str,help="Path for the tokenizer to use (only used for logging snippets). Relative to the train_script folder.")
+    parser.add_argument("-p", "--project_name", help="Name of the project to log to. Default is 'BackPerplexity'")
 
     args = parser.parse_args()
 
     run_name = os.path.splitext(os.path.basename(args.file_location))[0]
     devices = args.devices
     project_name = args.project_name if args.project_name is not None else project_name
-    if(args.tokenizer_name is not None):
+    if(args.tokenizer_path is not None):
         tokenizer_path = pathlib.Path(__file__).parent.as_posix()
-        tokenizer_path = os.path.join(tokenizer_path,{args.tokenizer_name})
+        tokenizer_path = os.path.join(tokenizer_path,args.tokenizer_path)
         tokenizer = get_tokenizer(m_path=tokenizer_path)
     else :
         print("WARNING TOKENIZER IS GPT2, WILL GIVE GIBBERISH IN VALIDATION")
