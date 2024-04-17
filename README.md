@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 # Training LLMs on Natural Languages
 This repo contains code used for the Natural Language experiments of the paper 'Arrows of Time in Large Langugage Models'.
 =======
@@ -12,7 +12,6 @@ Install requirements using `pip install -r requirements.txt`.
 NOTE : On Windows, doing this might install torch without CUDA support. If this is the case, first install pytorch CUDA following instruction on the official [website](https://pytorch.org/), then run `pip install -r requirements.txt`.
 
 Read the following section to learn how to reproduce experiments.
->>>>>>> 367ed66fac4e46cc88e540e464b9452d2340e817
 
 ## Tokenization
 The script `tokenize_to_h5.py` can be used to prepare a dataset for training. Given a .txt file, it will train a BPE tokenizer on it, then use it to tokenize the text, and save the tokenized dataset in `.h5` format.
