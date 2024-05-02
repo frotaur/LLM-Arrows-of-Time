@@ -10,15 +10,15 @@
         "embd_dropout": null
     },
     "training_params": {
-        "dataset_folder": "datavol/arabic/arabic.h5",
-        "batch_size": 90,
+        "dataset_folder": "datavol/vassilis/DNA_perp/tokdna.h5",
+        "batch_size": 88,
         "aggregate": 2,
-        "backwards": false,
+        "backwards": true,
         "steps_to_train": null,
         "backup_every": 5000,
         "step_log": 200,
         "valid_steps": 1000,
-        "state_save_loc": "datavol/vassilis/rebuttalruns"
+        "state_save_loc": "datavol/vassilis/DNAruns"
     },
     "optim_params": {
         "lr": 0.0001,

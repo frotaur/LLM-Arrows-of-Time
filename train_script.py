@@ -107,7 +107,7 @@ if __name__=='__main__':
     totbatches = len(train_dataset)//batch_size
     
     if(training_params['steps_to_train']==None):
-        steps_to_train = totbatches
+        steps_to_train = totbatches*4
     else:
         steps_to_train = training_params['steps_to_train']
 
@@ -133,7 +133,9 @@ if __name__=='__main__':
     
     if(os.path.exists(os.path.join(training_params['state_save_loc'],project_name,'state',run_name+'.state'))):
         trainer.load_state(os.path.join(training_params['state_save_loc'],project_name,'state',run_name+'.state'))
+
     trainer.stepnum =1
     trainer.train_steps(steps=steps_to_train,save_every=2000,aggregate=aggregate,
                         backup_every=training_params['backup_every'],step_log=training_params['step_log'],
                         batch_size=batch_size,valid_every=valid_every,resume_batches=True,pickup=pickup)
+    

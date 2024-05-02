@@ -42,7 +42,7 @@ class MinGPT_Trainer(Trainer):
         loss = self.compute_loss(batch_data)
         
         if(self.do_batch_log) :
-            wandb.log({'lr' : self.scheduler.get_last_lr()[0]},commit=False)
+            self.logger.log({'lr' : self.scheduler.get_last_lr()[0]},commit=False)
     
         return loss
 
@@ -68,7 +68,6 @@ class MinGPT_Trainer(Trainer):
 
         return loss
         
-
     def valid_log(self):
         #To be implemented when doing validation
         data, _ = self.valid_dataset[random.randint(0,len(self.valid_dataset)-1)] # (T,)*2
