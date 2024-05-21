@@ -48,4 +48,4 @@ def make_h5(pt_data_folder, destination_folder = None, view_tokenizer : AutoToke
 
 
 if __name__=='__main__':
-    make_h5('testdata', destination_folder='test_h5')
+    make_h5('arabic', destination_folder='test_h5')

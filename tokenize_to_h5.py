@@ -35,10 +35,10 @@ def txt_to_h5(txt_path, out_h5_folder, tokenizer_folder, tokenizer_name):
 
 
 if __name__=='__main__':
-    txt_path = 'dna/small.txt' # Path to the .txt file to be tokenized
-    out_h5_folder = 'newh5data' #  Folder that will contain the output .h5 file
-    tokenizer_folder = 'tokidoki' # Folder where the tokenizer will be saved
-    tokenizer_name = 'dnasmall' # Name of the tokenizer that will be saved
+    txt_path = 'frenchie/fr_R.txt' # Path to the .txt file to be tokenized
+    out_h5_folder = 'h5fr_R' #  Folder that will contain the output .h5 file
+    tokenizer_folder = 'modules/tokenizers' # Folder where the tokenizer will be saved
+    tokenizer_name = 'french_R' # Name of the tokenizer that will be saved
 
     ################## DO NOT MODIFY BELOW ##################
     txt_to_h5(txt_path, out_h5_folder, tokenizer_folder, tokenizer_name)
