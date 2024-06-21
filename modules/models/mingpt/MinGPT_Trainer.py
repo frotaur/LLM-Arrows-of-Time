@@ -12,9 +12,9 @@ from ...tokenizer import Tokenizer
 class MinGPT_Trainer(Trainer):
     def __init__(self, model: MinGPT, train_dataset: TokenText, valid_dataset : TokenText, backwards : bool=True, 
                  detokenizer :Tokenizer=None, optim: Optimizer = None, scheduler: _LRScheduler = None, 
-                 state_save_loc=None, device: str = 'cpu',parallel=None, run_name: str = None, project_name: str = None,
+                 save_loc=None, device: str = 'cpu',parallel=None, run_name: str = None, project_name: str = None,
                  run_config: dict ={}):
-        super().__init__(model, optim, scheduler, state_save_loc=state_save_loc, device=device, parallel=parallel,
+        super().__init__(model, optim, scheduler, save_loc=save_loc, device=device, parallel=parallel,
                          run_name=run_name, project_name=project_name, run_config=run_config)
 
         self.train_dataset = train_dataset
@@ -41,7 +41,7 @@ class MinGPT_Trainer(Trainer):
         # Check if correct, but should be :
         loss = self.compute_loss(batch_data)
         
-        if(self.do_batch_log) :
+        if(self.do_step_log) :
             self.logger.log({'lr' : self.scheduler.get_last_lr()[0]},commit=False)
     
         return loss

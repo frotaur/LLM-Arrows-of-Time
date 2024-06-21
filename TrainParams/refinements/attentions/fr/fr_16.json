@@ -19,7 +19,8 @@
         "backup_every": 15000,
         "step_log": 200,
         "valid_steps": 1000,
-        "state_save_loc": "runs"
+        "state_save_loc": "runs",
+        "save_loc": "datavol/refinements/runs/"
     },
     "optim_params": {
         "lr": 0.0001,

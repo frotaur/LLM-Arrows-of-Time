@@ -7,7 +7,7 @@ def modifparam():
             with open(file, 'r') as f:
                 data = json.load(f)
                 data['training_params']["dataset_folder"] = "datavol/french/french.h5"
-                data['training_params']["state_save_loc"] = "datavol/refinements/runs/"
+                data['training_params']["save_loc"] = "datavol/refinements/runs/"
 
                 with open(file, 'w') as f:
                     json.dump(data, f, indent=4)
