@@ -24,9 +24,9 @@
     },
     "optim_params": {
         "lr": 0.0001,
-        "warmup_steps": 4000,
-        "oscil_steps": 280000,
-        "lr_shrink": 0.8,
+        "warmup_steps": 5000,
+        "oscil_steps": 300000,
+        "lr_shrink": 0.95,
         "lr_init": 1e-07,
         "lr_min": 1e-06
     }

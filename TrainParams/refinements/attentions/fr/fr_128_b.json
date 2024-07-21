@@ -11,8 +11,8 @@
     },
     "training_params": {
         "dataset_folder": "datavol/french/french.h5",
-        "batch_size": 200,
-        "aggregate": 2,
+        "batch_size": 166,
+        "aggregate": 3,
         "backwards": true,
         "steps_to_train": null,
         "save_every": 3000,
@@ -24,9 +24,9 @@
     },
     "optim_params": {
         "lr": 0.0001,
-        "warmup_steps": 4000,
-        "oscil_steps": 260000,
-        "lr_shrink": 0.8,
+        "warmup_steps": 5000,
+        "oscil_steps": 300000,
+        "lr_shrink": 0.95,
         "lr_init": 1e-07,
         "lr_min": 1e-06
     }

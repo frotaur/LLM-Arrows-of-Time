@@ -10,3 +10,5 @@ newh5data
 tokidoki
 local_dataset.h5
 *.pyc
+saved_models
+*.state

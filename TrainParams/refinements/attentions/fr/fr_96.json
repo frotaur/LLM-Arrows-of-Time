@@ -11,8 +11,8 @@
     },
     "training_params": {
         "dataset_folder": "datavol/french/french.h5",
-        "batch_size": 500,
-        "aggregate": 1,
+        "batch_size": 250,
+        "aggregate": 2,
         "backwards": false,
         "steps_to_train": null,
         "save_every": 3000,

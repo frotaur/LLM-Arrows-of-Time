@@ -4,15 +4,15 @@
         "n_layers": 24,
         "n_heads": 16,
         "embed_dim": 1024,
-        "attn_length": 128,
+        "attn_length": 96,
         "mlp_ratio": 4.0,
         "dropout": 0.1,
         "embd_dropout": null
     },
     "training_params": {
-        "dataset_folder": "datavol/french/french.h5",
-        "batch_size": 166,
-        "aggregate": 3,
+        "dataset_folder": "datavol/english/english.h5",
+        "batch_size": 250,
+        "aggregate": 2,
         "backwards": false,
         "steps_to_train": null,
         "save_every": 3000,
@@ -20,7 +20,8 @@
         "step_log": 200,
         "valid_steps": 1000,
         "state_save_loc": "runs",
-        "save_loc": "datavol/refinements/runs/"
+        "save_loc": "datavol/refinements/runs/",
+        "fast_scrambling": true
     },
     "optim_params": {
         "lr": 0.0001,

@@ -77,7 +77,8 @@ def chat(screen,model,tokenizer,gen_tokens,backward,device):
         tokens = tokenizer.tokenize(phrase)
         if(backward):
             tokens = torch.flip(tokens,dims=[-1])
-
+        tokens = torch.cat([torch.tensor([[0]]),tokens],dim=-1).to(device) # Add BOS token
+        
         display_completion(tokens.to(device), model,tokenizer,gen_tokens=gen_tokens,screen=screen,backward = backward)
 
 if __name__ == "__main__":

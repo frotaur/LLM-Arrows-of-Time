@@ -8,3 +8,5 @@ datatest*
 hellas*
 french_med.state
 en_med.state
+saved_models
+*.state
