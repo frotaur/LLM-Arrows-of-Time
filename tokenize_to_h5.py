@@ -7,6 +7,7 @@ Creates the custom tokenizer, and tokenizes the text with it to generate the
 To make one of those things independently (e.g., only make the custom
 tokenizer), see modules/tok_utils.
 """
+
 import os
 import argparse
 
@@ -15,8 +16,6 @@ from modules.tok_utils import tokenize_folder
 from modules.tok_utils import create_tokenizer
 
 from modules import get_tokenizer
-
-
 
 
 def txt_to_h5(txt_path, out_h5_folder, tokenizer_folder, tokenizer_name):
@@ -35,16 +34,18 @@ def txt_to_h5(txt_path, out_h5_folder, tokenizer_folder, tokenizer_name):
         tokenizer_folder (str): Folder where the tokenizer will be saved
         tokenizer_name (str): Name of the tokenizer that will be saved
     """
-    create_tokenizer(txt_path, tokenizer_folder,tokenizer_name=tokenizer_name)
+    create_tokenizer(txt_path, tokenizer_folder, tokenizer_name=tokenizer_name)
     tokenize_folder(
         os.path.dirname(txt_path), os.path.join(tokenizer_folder, tokenizer_name)
     )
+
     toki = get_tokenizer(m_path=os.path.join(tokenizer_folder, tokenizer_name))
+
     make_h5(
-        os.path.dirname(txt_path),
-        os.path.splitext(os.path.basename(txt_path))[0],
-        out_h5_folder,
-        toki,
+        pt_data_folder=os.path.dirname(txt_path) + "_pt",
+        dataset_fname=os.path.splitext(os.path.basename(txt_path))[0],
+        destination_folder=out_h5_folder,
+        view_tokenizer=toki,
     )
 
 
@@ -62,7 +63,8 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "--txt_path", "-t",
+        "--txt_path",
+        "-t",
         type=str,
         required=True,
         help="""

@@ -8,7 +8,6 @@ from .models import MinGRU_Trainer as MinGRU_Trainer
 from .models import load_model as load_model
 from .models import load_trainer as load_trainer
 
-from .datasets import TokenTexth5 as TokenTexth5
 from .datasets import TokenTextBOS as TokenTextBOS
 
 from .tokenizer import Tokenizer as Tokenizer

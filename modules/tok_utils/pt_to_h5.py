@@ -66,7 +66,7 @@ def make_h5(
                     dset[current_index : current_index + length] = (
                         tensor.numpy().squeeze()
                     )
-
+                    print(dset[0:10])
                     # Update the current ind
                     current_index += length
     else:
@@ -90,7 +90,8 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "--output_directory", "-d",
+        "--output_directory",
+        "-d",
         type=str,
         help="""
         Path to the folder where the .h5 file will be saved.
@@ -99,7 +100,8 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "--dataset_name", "-n",
+        "--dataset_name",
+        "-n",
         type=str,
         help="""
         Name of the dataset file to be produced. Defaults to

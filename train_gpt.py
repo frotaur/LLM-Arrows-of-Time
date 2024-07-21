@@ -30,7 +30,8 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "--device", "-d",
+        "--device",
+        "-d",
         type=str,
         default="cpu",
         help="""
@@ -39,7 +40,8 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "--tokenizer_path", "-t",
+        "--tokenizer_path",
+        "-t",
         type=str,
         help="""
         Path for the tokenizer to use (only used for logging snippets).
@@ -48,15 +50,18 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "--run_name", "-r",
+        "--run_name",
+        "-r",
         type=str,
         help="""
         Name of the run for wandb logging. Default is the name of the
         config file.
-        """)
+        """,
+    )
 
     parser.add_argument(
-        "--project_name", "-p",
+        "--project_name",
+        "-p",
         default="ArrowsOfTime",
         help="""
         Name of the project to log to. Default is 'ArrowsOfTime'
@@ -64,7 +69,8 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "--no_step_pickup", "-s",
+        "--no_step_pickup",
+        "-s",
         action="store_false",
         help="""
         If set, train steps_to_train steps more. Otherwise, will train UP TO
@@ -81,5 +87,6 @@ if __name__ == "__main__":
         tokenizer_path=args.tokenizer_path,
         project_name=args.project_name,
         run_name=args.run_name,
-        step_pickup=args.no_step_pickup
+        step_pickup=args.no_step_pickup,
+        val_batch_size=20,
     )

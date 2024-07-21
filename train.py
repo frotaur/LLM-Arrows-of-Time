@@ -22,13 +22,16 @@ from torchenhanced import CosineWarmup
 
 from tqdm import tqdm
 
+
 def train(
     model_name: str,
     file_location: str,
     device: str | list[str],
     tokenizer_path: str,
-    project_name: str,
+    project_name: str = None,
+    run_name: str = None,
     step_pickup: bool = True,
+    val_batch_size: int = 250,
 ):
     """
     Main train script. Launches training of a model given parameters in a JSON file at file_location
@@ -39,13 +42,20 @@ def train(
             for data parallelism.
         tokenizer_path: path to the tokenizer to use. Relative to the
             train_script folder.
-        project_name: name of the project to log to. Default is 'NewBackPerp'
+        project_name: name of the project to log to.
         step_pickup: If false, train steps_to_train steps more. If true, will
             train UP TO steps_to_train TOTAL steps.
+        val_batch_size: When creating validation dataset, will do it assuming
+        a batch size of val_batch_size. This is to have a consistent validation
+        set even if using different batch_size when training. NOTE : reduce it
+        when testing with a small dataset, otherwise it might comprise the full
+        data
     """
 
     cur_path = pathlib.Path(__file__).parent.absolute().as_posix()
-    run_name = os.path.splitext(os.path.basename(file_location))[0]
+
+    if run_name is None:
+        run_name = os.path.splitext(os.path.basename(file_location))[0]
 
     print("TOKENIZER PATH : ", os.path.join(cur_path, tokenizer_path))
     if tokenizer_path is None:
@@ -93,6 +103,8 @@ def train(
 
     valid_every = int(valid_steps / valid_percent_time)
 
+    print(f"Validating every {valid_every} steps")
+
     backwards = training_params["backwards"]  # If we train backwards
 
     rng = np.random.default_rng(42)  # For deterministic shuffling of dataset
@@ -117,35 +129,50 @@ def train(
         backwards=backwards,
     )
 
-    if(training_params['fast_scrambling']):
+    if training_params["fast_scrambling"]:
         # Optional, to speed up scrambling, and limit
         # the size of the dataset which is shuffled, avoiding
         # memory issues.
         max_indices = len(motherDataset)
-        MAX_INDICES = 2*10**9 # 3 billion tokens
-        bunch_size = 5*10**8
+        MAX_INDICES = 2 * 10**9  # 3 billion tokens
+        bunch_size = 5 * 10**8
         indices = []
-        if(max_indices>MAX_INDICES):
+        if max_indices > MAX_INDICES:
             # We remove the last one if we have at least 3 billion tokens
-            shuffled_indices = rng.choice(np.arange(max_indices//bunch_size), min(3, max_indices//bunch_size), replace=False)
-            print('doing fast scrambling, chosen elements : ',shuffled_indices, 'among ',max_indices//bunch_size)
+            shuffled_indices = rng.choice(
+                np.arange(max_indices // bunch_size),
+                min(3, max_indices // bunch_size),
+                replace=False,
+            )
+            print(
+                "doing fast scrambling, chosen elements : ",
+                shuffled_indices,
+                "among ",
+                max_indices // bunch_size,
+            )
         else:
             # We do not remove the last one if we have less than 3 billion tokens
-            shuffled_indices = rng.choice(np.arange(max_indices//bunch_size+1), min(3, max_indices//bunch_size+1), replace=False)
+            shuffled_indices = rng.choice(
+                np.arange(max_indices // bunch_size + 1),
+                min(3, max_indices // bunch_size + 1),
+                replace=False,
+            )
 
         for i in tqdm(shuffled_indices):
             # shuffle max 10**9 tokens at a time
-            batch_indices = np.arange(i*bunch_size,min((i+1)*bunch_size,max_indices))
+            batch_indices = np.arange(
+                i * bunch_size, min((i + 1) * bunch_size, max_indices)
+            )
             rng.shuffle(batch_indices)
             indices.extend(list(batch_indices))
-    else :
+    else:
         indices = np.arange(len(motherDataset))
         rng.shuffle(indices)
 
     motherDataset = Subset(motherDataset, list(indices))  # Shuffled dataset
 
-    # To keep it constant even if we switch batch_size, I take 250*valid_steps datapoints in the validation set
-    val_inds = valid_steps * 250
+    # To keep it constant even if we switch batch_size, I take val_batch_size*valid_steps datapoints in the validation set
+    val_inds = valid_steps * val_batch_size
     # Validation, last portion of dataset
     val_range = range(len(motherDataset) - val_inds, len(motherDataset))
     # Training, first portion of dataset
@@ -171,7 +198,7 @@ def train(
     totbatches = len(train_dataset) // batch_size
 
     if training_params["steps_to_train"] is None:
-        steps_to_train = totbatches * 4
+        steps_to_train = totbatches * 20
     else:
         steps_to_train = training_params["steps_to_train"]
 
@@ -237,7 +264,7 @@ def train(
                 run_name + ".state",
             )
         )
-        
+
     trainer.stepnum = 1
     trainer.train_steps(
         steps=steps_to_train,

@@ -29,7 +29,7 @@ class MinGPT_Trainer(Trainer):
         device: str = "cpu",
         parallel=None,
         run_name: str = None,
-        project_name: str = None,
+        project_name: str = "ArrowsOfTime",
         run_config: dict = {},
     ):
         super().__init__(

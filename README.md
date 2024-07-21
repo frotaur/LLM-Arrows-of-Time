@@ -43,6 +43,18 @@ NOTE : On Windows, doing this might install torch without CUDA support. If this 
 
 Read the following section to learn how to reproduce experiments.
 
+## Branches and project versions
+We recommend to always use the latest commit on the 'main' branch, as it will always be the cleanest and most updated branch. Tags are present on the git tree to restore the project to previous versions.
+
+### Branch : main
+Main branch, may be regularly updated to increase code readability/usability. Use this branch to run similar experiments to the natural language ones in the paper. Will contain only a few example `.json`files for training, to get the exact specifications of previous experiments see the tags below.
+
+### Tag : original
+This tag restores the codebase to a snapshot as it was for the first submission of the paper. Uses an earlier version of torchenhanced (custom library used for training, akin to pytorch lightning). Contains the `.json` files for all the natural language experiments
+
+### Tag : rebuttal
+This tag restores the codebase to a snapshot as it was for the submission of the rebuttal, during the paper review. Contains slightly update code, as well as additional `.json` files for experiments on Arabic, Hebrew and Tagalog, as well reversed French
+
 ## Tokenization
 The script `tokenize_to_h5.py` can be used to prepare a dataset for training. Given a .txt file, it will train a BPE tokenizer on it, then use it to tokenize the text, and save the tokenized dataset in `.h5` format.
 
@@ -81,9 +93,9 @@ options:
 Then run the script.
 
 NOTE : tokenization of large .txt files (>100GB) might take a while (1,2 days). This script is NOT designed to pick up where it left off if it crashes. For bigger datasets, consider making a script (include `from modules.tok_utils import *`), and run, subsequently :  
-- `create_tokenizer(txt_path, tokenizer_folder,tokenizer_name=tokenizer_name)` : Will train the BPE tokenizer on the given .txt file, and save it in <tokenizer_folder>/<tokenizer_name>  
+- `create_tokenizer(txt_path, tokenizer_folder,tokenizer_name)` : Will train the BPE tokenizer on the given .txt file, and save it in <tokenizer_folder>/<tokenizer_name>  
 - `tokenize_folder(os.path.dirname(txt_path), os.path.join(tokenizer_folder,tokenizer_name))` : Will tokenize the text file, splitting it into subfiles if necessary for memory reasons. Saved the tokenized tensors as `.pt`. If it crashes mid-way, can be restarted, and will pickup from last checkpoint  
-- `make_h5(os.path.dirname(txt_path), os.path.splitext(os.path.basename(txt_path))[0], out_h5_folder,toki)` : Will convert a folder containing `.pt` files into a single `.h5` dataset, ready for training.
+- `make_h5(os.path.dirname(txt_path)+'_pt', dataset_name, destination_folder,toki)` : Will convert a folder containing `.pt` files into a single `.h5` dataset, ready for training. `toki` is an `AutoTokenizer` instance, used only for visualization of the process.
 
 For more informations on these functions, look at docstring comments in `modules/tok_utils`
 
@@ -133,6 +145,8 @@ options:
                 Path for the tokenizer to use (only used for logging snippets). Relative to the script folder.
   -p PROJECT_NAME, --project_name PROJECT_NAME
                 Name of the project to log to. 
+  -r RUN_NAME, --run_name RUN_NAME
+                Name of the run. Defaults to the '.json' filename
   -s, --no_step_pickup 
                 If set, train steps_to_train steps more. Otherwise, will train UP TO steps_to_train TOTAL steps."
   ```
@@ -169,7 +183,9 @@ Here is a description of each entry :
         "backup_every": 15000,                     # Number of steps between a backup of the training state.
         "step_log": 400,                           # Number of steps between each log of training loss in wandb
         "valid_steps": 1000,                       # Number of batches seen during one validation.
-        "state_save_loc": "datavol/vassilis/runs"  # folder in which to save the training state.
+        "save_loc": "datavol/vassilis/runs"  # folder in which to save the training state.,
+        "fast_scrambling": true # if true, will increase dataset scrambling speed, with the price of cutting the dataset if it has more than 3 billion examples (otherwise, RAM usage > 100 Gb)
+
     },
     "optim_params": {
         "lr": 0.0001,                              # Base learning rate
