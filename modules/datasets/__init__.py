@@ -1,1 +1,1 @@
-from .TokenText import *
+from .TokenText import TokenTextBOS as TokenTextBOS

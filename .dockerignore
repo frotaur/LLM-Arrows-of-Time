@@ -1,0 +1,12 @@
+.DS_Store
+__pycache__
+wandb
+runs
+Datasets
+datavol
+datatest*
+hellas*
+french_med.state
+en_med.state
+saved_models
+*.state
