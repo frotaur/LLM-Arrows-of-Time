@@ -7,11 +7,11 @@
   <div>
       <a href='https://scholar.google.com/citations?user=4o52I2oAAAAJ&hl=en' target='_blank'>Vassilis Papadopoulos<sup>* 1 2</sup> </a>&emsp;
       <a href='https://jeremiewenger.com/' target='_blank'>Jérémie Wenger<sup>3</a>&emsp;
-      <a href='https://scholar.google.com/citations?user=p9B6eWEAAAAJ&hl=en'_blank'>Clément Hongler<sup>* 2</sup></a>&emsp;
+      <a href='https://scholar.google.com/citations?user=p9B6eWEAAAAJ&hl=en'_blank'>Clément Hongler<sup>* 1</sup></a>&emsp;
   </div>
   <br>
   <div style='font-size: 8pt'>
-      <sup>1</sup> FSL/Institute of Physics, EPFL, Switzerland &emsp; <sup>2</sup> CSFT/Institute of Mathematics, EPFL, Switzerland &emsp; <sup>3</sup> Department of Computing, Goldsmiths/UoL, London, UK
+      <sup>1</sup> CSFT/Institute of Mathematics, EPFL, Switzerland &emsp; <sup>2</sup> FSL/Institute of Physics, EPFL, Switzerland &emsp;  <sup>3</sup> Department of Computing, Goldsmiths/UoL, London, UK
   </div>
   <div style='font-size: 8pt'>Correspondence to: Clément Hongler, clement.hongler©epfl.ch</div>
   <div style='font-size: 8pt'><sup>*</sup> equal contributions</div>
