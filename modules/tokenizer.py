@@ -281,6 +281,20 @@ class HfTokenizer(Tokenizer):
 
         return "".join(t_strings) if join else t_strings
 
+    def special_tokens(self):
+        special_names = self.hf_tokenizer.additional_special_tokens
+
+        special_dict = {}
+        for name in special_names:
+            special_dict[name] = self.tokenize(name).item()
+        
+        return special_dict
+
+    def add_special(self):
+        """ Adds special <|forward|> and <|backward|> tokens to the tokenizer """
+        self.hf_tokenizer.add_special_tokens({'additional_special_tokens': ['<|forward|>','<|backward|>']}, replace_additional_special_tokens=True)
+        print('Added succesfully : ', self.special_tokens())
+        
 
 def load_pretrained_hf_tokenizer(*, m_name: str = None, m_path: str = None):
     """

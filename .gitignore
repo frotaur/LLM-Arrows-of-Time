@@ -10,3 +10,7 @@ local_dataset.h5
 *.pyc
 saved_models
 *.state
+shake
+shake_h5
+/modules/tokenizers/shake_tokenizer
+test*.ipynb

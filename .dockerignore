@@ -10,3 +10,5 @@ french_med.state
 en_med.state
 saved_models
 *.state
+*.h5
+shake*

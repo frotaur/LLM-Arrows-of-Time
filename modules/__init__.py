@@ -9,6 +9,7 @@ from .models import load_model as load_model
 from .models import load_trainer as load_trainer
 
 from .datasets import TokenTextBOS as TokenTextBOS
+from .datasets import TokenTextFWBW as TokenTextFWBW
 
 from .tokenizer import Tokenizer as Tokenizer
 from .tokenizer import get_tokenizer as get_tokenizer
