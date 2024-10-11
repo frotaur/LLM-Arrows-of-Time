@@ -66,6 +66,15 @@ if __name__ == "__main__":
         """,
     )
 
+    parser.add_argument(
+        "--cooldown_now",
+        "-c",
+        action="store_true",
+        help="""
+        If set, cools down learning rate immediately.
+        """,
+    )
+    
     args = parser.parse_args()
 
     train(

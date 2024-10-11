@@ -14,7 +14,7 @@
         "tokenizer_path": "modules/tokenizers/en_tokenizer",
         "batch_size": 60,
         "aggregate": 3,
-        "steps_to_train": 500000,
+        "steps_to_train": 380000,
         "save_every": 3000,
         "backup_every": 15000,
         "step_log": 200,
