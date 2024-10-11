@@ -65,13 +65,23 @@ if __name__ == "__main__":
         """,
     )
 
+    parser.add_argument(
+        "--cooldown_now",
+        "-c",
+        action="store_true",
+        help="""
+        If set, cools down learning rate immediately.
+        """,
+    )
+    
     args = parser.parse_args()
 
     train(
         model_name="gpt",
         file_location=args.file_location,
-        device=args.device,
+        device=args.devices,
         project_name=args.project_name,
         run_name=args.run_name,
         step_pickup=args.no_step_pickup,
+        cooldown_now=args.cooldown_now,
     )

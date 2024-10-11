@@ -231,23 +231,6 @@ def train(
     # ------ Schedulers ------
     warmup_steps = optim_params["warmup_steps"]
     
-    # oscil_steps = optim_params[
-    #     "oscil_steps"
-    # ]  # Period of cosine restart for oscillation
-    # lr_shrink_factor = optim_params["lr_shrink"]
-    # lr_min = optim_params["lr_min"]
-    # lr_init = optim_params["lr_init"]
-    
-    # Testing NO COSINE, constant with linear cool-down at the end
-    # scheduler = CosineWarmup(
-    #     optim,
-    #     warmup_steps=warmup_steps,
-    #     lr_shrink=lr_shrink_factor,
-    #     lr_init=lr_init,
-    #     T_0=oscil_steps,
-    #     eta_min=lr_min,
-    # )
-
     # Constant LR, with linear warmup
     scheduler = LinearLR(optim, start_factor=1e-7, end_factor=1, total_iters=warmup_steps)
 

@@ -85,6 +85,5 @@ if __name__ == "__main__":
         project_name=args.project_name,
         run_name=args.run_name,
         step_pickup=args.no_step_pickup,
-        val_batch_size=20, # TODO change to 250 !!
         cooldown_now=args.cooldown_now,
     )

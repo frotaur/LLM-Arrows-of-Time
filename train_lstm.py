@@ -75,4 +75,5 @@ if __name__ == "__main__":
         project_name=args.project_name,
         run_name=args.run_name,
         step_pickup=args.no_step_pickup,
+        cooldown_now=args.cooldown_now
     )

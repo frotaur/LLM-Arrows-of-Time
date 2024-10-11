@@ -1,7 +1,5 @@
 import json, os
-import sys
 
-sys.path.append("../../../..")
 from perm_generator import *
 
 perm_list = [
