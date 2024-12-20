@@ -1,5 +1,6 @@
 import torch,curses
 from modules import get_tokenizer,MinGPT,MinGPT_Trainer
+from torchenhanced import Trainer
 import argparse, pathlib
 import os
 
@@ -100,11 +101,13 @@ if __name__ == "__main__":
     backward=args.backward
 
     # Load the model using the specified path
-    name, config, weights = MinGPT_Trainer.model_config_from_state(args.model_path,device=args.device)
-    assert name=='MinGPT', 'For now only works with MinGPT models'
+    # name, config, weights = MinGPT_Trainer.model_config_from_state(args.model_path,device=args.device)
+    model = Trainer.get_model_from_state(MinGPT,args.model_path)
+    model.to(args.device)
+    # assert name=='MinGPT', 'For now only works with MinGPT models'
 
-    model = MinGPT(**config).to(args.device)
-    model.load_state_dict(weights,strict=True)
+    # model = MinGPT(**config).to(args.device)
+    # model.load_state_dict(weights,strict=True)
     model.eval()
 
 

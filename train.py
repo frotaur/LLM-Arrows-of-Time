@@ -16,10 +16,11 @@ from torch.utils.data import Subset
 from modules import load_model
 from modules import load_trainer
 from modules import TokenTextBOS as TokenTextBOS
+from modules import TokenTextFWBW as TokenTextFWBW
 from modules import get_tokenizer
 
 from torchenhanced import CosineWarmup
-
+from torch.optim.lr_scheduler import LinearLR
 from tqdm import tqdm
 
 
@@ -27,51 +28,30 @@ def train(
     model_name: str,
     file_location: str,
     device: str | list[str],
-    tokenizer_path: str,
     project_name: str = None,
     run_name: str = None,
     step_pickup: bool = True,
     val_batch_size: int = 250,
+    cooldown_now: bool = False,
 ):
     """
     Main train script. Launches training of a model given parameters in a JSON file at file_location
 
     Args:
+        model_name: name of the model to train. Must be a valid model in the modules
         file_location: path to the JSON config file
         device: device to train on. 'cpu' or 'cuda:0'. Can be a list of devices
             for data parallelism.
-        tokenizer_path: path to the tokenizer to use. Relative to the
-            train_script folder.
         project_name: name of the project to log to.
+        run_name: name of the specific run. If None, will use the name of the JSON file.
         step_pickup: If false, train steps_to_train steps more. If true, will
             train UP TO steps_to_train TOTAL steps.
         val_batch_size: When creating validation dataset, will do it assuming
-        a batch size of val_batch_size. This is to have a consistent validation
-        set even if using different batch_size when training. NOTE : reduce it
-        when testing with a small dataset, otherwise it might comprise the full
-        data
+        a batch size of val_batch_size.
+        cooldown_now: If true, will cool down the learning rate to 0, for 10% of the training time.
     """
 
     cur_path = pathlib.Path(__file__).parent.absolute().as_posix()
-
-    if run_name is None:
-        run_name = os.path.splitext(os.path.basename(file_location))[0]
-
-    print("TOKENIZER PATH : ", os.path.join(cur_path, tokenizer_path))
-    if tokenizer_path is None:
-        raise (
-            ValueError(
-                "Tokenizer path required, please specify with -t <tokenizer_path>"
-            )
-        )
-    if not os.path.exists(os.path.join(cur_path, tokenizer_path)):
-        raise (
-            FileNotFoundError(f"Tokenizer not found at path {os.path.join(cur_path,tokenizer_path)}. \n \
-                                Tokenizer path should be relative to train_script.py.")
-        )
-
-    tokenizer_path = os.path.join(cur_path, tokenizer_path)
-    tokenizer = get_tokenizer(m_path=tokenizer_path)
 
     try:
         with open(file_location, "r") as f:
@@ -82,6 +62,28 @@ def train(
     except Exception as e:
         print("Error reading JSON file !")
         raise (e)
+
+
+    if run_name is None:
+        run_name = os.path.splitext(os.path.basename(file_location))[0]
+
+    tokenizer_path = training_params.get("tokenizer_path",None)
+
+    print("TOKENIZER PATH : ", os.path.join(cur_path, tokenizer_path))
+    if tokenizer_path is None:
+        raise (
+            ValueError(
+                "Tokenizer path required, please specify in the .json file with key 'tokenizer_path'"
+            )
+        )
+    if not os.path.exists(os.path.join(cur_path, tokenizer_path)):
+        raise (
+            FileNotFoundError(f"Tokenizer not found at path {os.path.join(cur_path,tokenizer_path)}. \n \
+                                Tokenizer path should be relative to train_script.py.")
+        )
+
+    tokenizer_path = os.path.join(cur_path, tokenizer_path)
+    tokenizer = get_tokenizer(m_path=tokenizer_path)
 
     if not os.path.exists(training_params["dataset_folder"]):
         raise FileNotFoundError(f"Tried to find dataset folder at \
@@ -98,14 +100,15 @@ def train(
     # We ask how many validation steps. To get these, we assume 5% of training
     # time allocated for validation.
     valid_steps = training_params["valid_steps"]
-    valid_percent_time = 5  # Time spent validating, in percentage
+    valid_percent_time = 4  # Time spent validating, in percentage
     valid_percent_time = valid_percent_time / 100
 
     valid_every = int(valid_steps / valid_percent_time)
 
     print(f"Validating every {valid_every} steps")
 
-    backwards = training_params["backwards"]  # If we train backwards
+    backwards = training_params.get("backwards",None)  # If we train backwards
+    permutation = training_params.get("permutation",None)  # If we train with a permutation
 
     rng = np.random.default_rng(42)  # For deterministic shuffling of dataset
 
@@ -123,11 +126,26 @@ def train(
         print("Dataset already copied to current folder, using this one.")
 
     # Generate and shuffle the dataset
-    motherDataset = TokenTextBOS(
-        h5_file=destination_path,
-        attn_length=model_params["attn_length"],
-        backwards=backwards,
-    )
+    if((backwards is not None) or (permutation is not None)):
+        # If we have a definite direction, we use it
+        motherDataset = TokenTextBOS(
+            h5_file=destination_path,
+            attn_length=model_params["attn_length"],
+            backwards=backwards,
+            permutation=permutation
+        )
+    else:
+        if(tokenizer.special_tokens()=={}):
+            tokenizer.add_special()
+        fw_num = tokenizer.special_tokens()['<|forward|>']
+        bw_num = tokenizer.special_tokens()['<|backward|>']
+        model_params["vocab_size"] = model_params["vocab_size"]+2 # Adjust vocab size
+
+        motherDataset = TokenTextFWBW(h5_file=destination_path,
+                                      attn_length=model_params["attn_length"],
+                                      fw_token_num=fw_num,
+                                      bw_token_num=bw_num,
+                                      stride=model_params["attn_length"])
 
     if training_params["fast_scrambling"]:
         # Optional, to speed up scrambling, and limit
@@ -198,32 +216,23 @@ def train(
     totbatches = len(train_dataset) // batch_size
 
     if training_params["steps_to_train"] is None:
-        steps_to_train = totbatches * 20
+        steps_to_train = totbatches
     else:
         steps_to_train = training_params["steps_to_train"]
 
     print(f"{totbatches=}, {batch_size=}, {len(train_dataset)=}")
     base_lr = optim_params["lr"]
-    warmup_steps = optim_params["warmup_steps"]
-    oscil_steps = optim_params[
-        "oscil_steps"
-    ]  # Period of cosine restart for oscillation
-    lr_shrink_factor = optim_params["lr_shrink"]
-    lr_min = optim_params["lr_min"]
-    lr_init = optim_params["lr_init"]
+
 
     print(f"--- Training for ~ {steps_to_train//1000}k minibatches ---")
     # ------ Optimizers ------
     optim = torch.optim.AdamW(model.parameters(), lr=base_lr)
-    # Cosine schedule with Warmup, from torchenhanced package
-    scheduler = CosineWarmup(
-        optim,
-        warmup_steps=warmup_steps,
-        lr_shrink=lr_shrink_factor,
-        lr_init=lr_init,
-        T_0=oscil_steps,
-        eta_min=lr_min,
-    )
+
+    # ------ Schedulers ------
+    warmup_steps = optim_params["warmup_steps"]
+    
+    # Constant LR, with linear warmup
+    scheduler = LinearLR(optim, start_factor=1e-7, end_factor=1, total_iters=warmup_steps)
 
     # Intialize the trainer class
     trainer_config = dict(
@@ -276,4 +285,6 @@ def train(
         valid_every=valid_every,
         resume_batches=True,
         pickup=step_pickup,
+        cooldown_now=cooldown_now,
+        cooldown_finish=training_params["cooldown_finish"]
     )

@@ -1,0 +1,36 @@
+{
+    "model_params": {
+        "vocab_size": 50257,
+        "n_layers": 28,
+        "n_heads": 24,
+        "embed_dim": 3072,
+        "attn_length": 256,
+        "mlp_ratio": 2.6667,
+        "dropout": 0.1,
+        "embd_dropout": null
+    },
+    "training_params": {
+        "dataset_folder": "datavol/languages/english/english.h5",
+        "tokenizer_path": "modules/tokenizers/en_tokenizer",
+        "batch_size": 60,
+        "aggregate": 3,
+        "steps_to_train": 380000,
+        "save_every": 3000,
+        "backup_every": 15000,
+        "step_log": 200,
+        "valid_steps": 1000,
+        "backwards": true,
+        "state_save_loc": "runs",
+        "save_loc": "datavol/refinements/runs/",
+        "fast_scrambling": false,
+        "cooldown_finish": 0.15
+    },
+    "optim_params": {
+        "lr": 0.0001,
+        "warmup_steps": 5000,
+        "oscil_steps": 300000,
+        "lr_shrink": 0.95,
+        "lr_init": 1e-07,
+        "lr_min": 1e-06
+    }
+}

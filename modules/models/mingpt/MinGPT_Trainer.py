@@ -21,7 +21,7 @@ class MinGPT_Trainer(Trainer):
         model: MinGPT,
         train_dataset: TokenText,
         valid_dataset: TokenText,
-        backwards: bool = True,
+        permutation: list | None = None,
         detokenizer: Tokenizer = None,
         optim: Optimizer = None,
         scheduler: _LRScheduler = None,
@@ -31,7 +31,17 @@ class MinGPT_Trainer(Trainer):
         run_name: str = None,
         project_name: str = "ArrowsOfTime",
         run_config: dict = {},
+        **kwargs,
     ):
+        """
+            Trainer for the MinGPT model.
+
+            Args:
+            model : MinGPT model
+            train_dataset : TokenText dataset for training
+            valid_dataset : TokenText dataset for validation
+            backwards : whether the text is read backwards. Default is True.
+        """
         super().__init__(
             model,
             optim,
@@ -51,10 +61,16 @@ class MinGPT_Trainer(Trainer):
 
         self.detokenizer = detokenizer
 
-        # In principle, extractable form dataset, but annoying because I use
-        # Subset, so I just give it.
-        self.backwards = backwards
-
+        if(hasattr(self.train_dataset,'dataset')): # double subset case, as in prepared with train.py
+            # Kinda ugly, but don't know how to check otherwise
+            permutation = self.train_dataset.dataset.dataset.permutation
+        else:
+            permutation = self.train_dataset.permutation
+        
+        self.inv_perm = torch.argsort(permutation)
+        self.attn_length = len(permutation)
+        
+        print('Warning : with FWBW training, validation sentence example will not be flipped back to normal order')
         # Print number of parameters
         print(
             f"Number of parameters : {sum(p.numel() for p in self.model.parameters())/1e6:.2f}M"
@@ -97,6 +113,7 @@ class MinGPT_Trainer(Trainer):
         token_truth = token_truth.to(self.device)  # (B, T)
 
         token_in = self.model.forward(token_in)
+
         # RESHAPE OTHERWISE, CROSS ENTROPY LOSS BUGS FOR BIG BATCHES
         token_in = token_in.reshape(B * T, -1)  # (B*T, C)
         token_truth = token_truth.reshape(B * T)
@@ -117,23 +134,21 @@ class MinGPT_Trainer(Trainer):
         data, _ = self.valid_dataset[
             random.randint(0, len(self.valid_dataset) - 1)
         ]  # (T,)*2
-        data = data[:5].to(self.device)  # only keep first 5 tokens
+        data = data[:3].to(self.device)  # only keep first 5 tokens
         if self.parallel_train:
             modello = self.model.module
         else:
             modello = self.model
+
         # Generate some tokens
         phrase_out = modello.generate(
-            data[None, :], max_new_tokens=100, do_sample=True
-        ).cpu()  # (1, 5+300)
+            data[None, :], max_new_tokens=self.attn_length-3+1, do_sample=True
+        )[:,1:].cpu()  # (1, attn_length), remove BOS token
 
-        if self.backwards:
-            phrase_out = self.detokenizer.detokenize(
-                torch.flip(phrase_out, dims=[1])
-            )  # ()
-        else:
-            phrase_out = self.detokenizer.detokenize(phrase_out)
 
+        phrase_out = self.detokenizer.detokenize(phrase_out[:,self.inv_perm])
+        print(phrase_out)
+        
         self.text_table.add_data(f"{self.steps_done/1000:.1f}k", phrase_out)
         # Fucking wandb... To update the table before end, need to re-create one each time
         new_table = wandb.Table(

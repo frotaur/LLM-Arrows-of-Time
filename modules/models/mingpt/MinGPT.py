@@ -19,23 +19,6 @@ from torchenhanced import ConfigModule
 class MinGPT(ConfigModule):
     """
     GPT Language Model.
-
-    For reference, here are some standard parameters
-
-    # GPT-1
-    n_layer=12, n_head=12, n_embd=768  # 117M params
-
-    # GPT-2 configs
-    'gpt2':         n_layer=12, n_head=12, n_embd=768,  # 124M params
-    'gpt2-medium':  n_layer=24, n_head=16, n_embd=1024, # 350M params
-    'gpt2-large':   n_layer=36, n_head=20, n_embd=1280, # 774M params
-    'gpt2-xl':      n_layer=48, n_head=25, n_embd=1600, # 1558M params
-
-    # Gophers
-    'gopher-44m':   n_layer=8, n_head=16, n_embd=512,
-    'gpt-mini':     n_layer=6, n_head=6, n_embd=192,
-    'gpt-micro':    n_layer=4, n_head=4, n_embd=128,
-    'gpt-nano':     n_layer=3, n_head=3, n_embd=48,
     """
 
     def __init__(
@@ -48,6 +31,7 @@ class MinGPT(ConfigModule):
         mlp_ratio: float = 4,
         dropout: float = 0.1,
         embd_dropout: float = None,
+        fast = True
     ):
         """
         Args:
@@ -59,8 +43,8 @@ class MinGPT(ConfigModule):
             mlp_ratio: ratio of mlp hidden dim to embedding dim
             dropout: (optional) dropout probability
             embd_dropout: (optional) dropout probability for the embedding layer
-            configo = dict(vocab_size=vocab_size,n_layers=n_layers,embed_dim=embed_dim,n_heads=n_heads,
-                        attn_length=attn_length,mlp_ratio=mlp_ratio,dropout=dropout,embd_dropout=embd_dropout)
+            fast : Legacy parameter. Set to False to use old implementation, and allow
+            loading of old models.
         """
         configo = dict(
             vocab_size=vocab_size,
@@ -86,6 +70,11 @@ class MinGPT(ConfigModule):
             mlp_ratio=mlp_ratio,
             dropout=dropout,
         )
+        if(fast):
+            Block = FastBlock
+        else:
+            Block = SlowBlock
+            
         self.transformer = nn.ModuleDict(
             dict(
                 token_embedder=nn.Embedding(vocab_size, embed_dim),
@@ -287,8 +276,86 @@ class CausalSelfAttention(DevModule):
 
         return x
 
+class FastCausalSelfAttention(DevModule):
+    """
+        Multi-head masked self-attention layer, implemented from pytorch,
+        should be faster than the custom implementation.
 
-class Block(DevModule):
+        Args :
+            embed_dim : number of embedding dimensions
+            n_heads : number of attention heads
+            attn_length : length of the attention window
+            dropout : (optional) dropout probability 
+    """
+
+    def __init__(self, embed_dim : int, n_heads :int, attn_length:int, dropout:float = 0.1):
+        super().__init__()
+        assert embed_dim % n_heads == 0, 'Number of heads {n_head} must divide embedding dim {n_embd}'
+        self.attn = nn.MultiheadAttention(embed_dim, n_heads, dropout=dropout, batch_first=True)
+        self.resid_dropout = nn.Dropout(dropout)
+
+        self.attn_length = attn_length
+        # Upper triangular part is 'TRUE', i.e., not allowed
+        self.register_buffer("cant_attend", torch.tril(torch.ones((attn_length, attn_length),dtype=torch.int))==0)
+
+    def forward(self, x):
+        B, T, C = x.size()
+
+        x, _ = self.attn(x, x, x, attn_mask=self.cant_attend[:T,:T], is_causal=True, need_weights=False) # (B, T, C)
+
+        x = self.resid_dropout(x) # Apply the residual dropout
+
+        return x
+
+class FastBlock(DevModule):
+    """
+    One transformer block/layer, fast causal attention followed by a MLP.
+
+    Args:
+        embed_dim: number of embedding dimensions
+        n_heads: number of attention heads
+        attn_length: length of the attention window
+        mlp_ratio: ratio of mlp hidden dim to embedding dim
+        dropout: (optional) dropout probability
+    """
+
+    def __init__(
+        self,
+        embed_dim: int,
+        n_heads: int,
+        attn_length: int,
+        mlp_ratio: float,
+        dropout: float = 0.1,
+    ):
+        super().__init__()
+
+        self.ln_1 = nn.LayerNorm(embed_dim)
+        self.attn = FastCausalSelfAttention(
+            embed_dim=embed_dim,
+            n_heads=n_heads,
+            attn_length=attn_length,
+            dropout=dropout,
+        )
+        self.ln_2 = nn.LayerNorm(embed_dim)
+
+        self.mlp = nn.ModuleDict(
+            dict(
+                c_fc=nn.Linear(embed_dim, int(mlp_ratio * embed_dim)),
+                act=nn.GELU(),
+                c_proj=nn.Linear(int(mlp_ratio * embed_dim), embed_dim),
+                dropout=nn.Dropout(dropout),
+            )
+        )
+
+    def forward(self, x):
+        x = x + self.attn(self.ln_1(x))
+        x = x + self.mlp["dropout"](
+            self.mlp["c_proj"](self.mlp["act"](self.mlp["c_fc"](self.ln_2(x))))
+        )
+
+        return x
+
+class SlowBlock(DevModule):
     """
     One transformer block/layer, causal attention followed by a MLP.
 

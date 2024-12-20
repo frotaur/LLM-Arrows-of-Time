@@ -9,6 +9,7 @@ from .models import load_model as load_model
 from .models import load_trainer as load_trainer
 
 from .datasets import TokenTextBOS as TokenTextBOS
+from .datasets import TokenTextFWBW as TokenTextFWBW
 
 from .tokenizer import Tokenizer as Tokenizer
 from .tokenizer import get_tokenizer as get_tokenizer
@@ -16,4 +17,4 @@ from .tokenizer import tokenize_txt_file as tokenize_txt_file
 
 from .tok_utils import make_h5 as make_h5
 from .tok_utils import tokenize_folder as tokenize_folder
-from .tok_utils import create_custom_tokenizer as create_custom_tokenizer
+from .tok_utils import create_tokenizer as create_tokenizer

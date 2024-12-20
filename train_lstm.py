@@ -40,14 +40,6 @@ if __name__ == "__main__":
         """,
     )
 
-    parser.add_argument(
-        "--tokenizer_path", "-t",
-        type=str,
-        help="""
-        Path for the tokenizer to use (only used for logging snippets).
-        Relative to the train_script folder.
-        """,
-    )
 
     parser.add_argument(
         "--run_name", "-r",
@@ -74,14 +66,23 @@ if __name__ == "__main__":
         """,
     )
 
+    parser.add_argument(
+        "--cooldown_now",
+        "-c",
+        action="store_true",
+        help="""
+        If set, cools down learning rate immediately.
+        """,
+    )
+    
     args = parser.parse_args()
 
     train(
         model_name="lstm",
         file_location=args.file_location,
         device=args.device,
-        tokenizer_path=args.tokenizer_path,
         project_name=args.project_name,
         run_name=args.run_name,
         step_pickup=args.no_step_pickup,
+        cooldown_now=args.cooldown_now
     )

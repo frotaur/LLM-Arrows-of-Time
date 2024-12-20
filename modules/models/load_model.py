@@ -5,6 +5,7 @@ from .gru import MinGRU_Trainer
 from .mingpt import MinGPT
 from .mingpt import MinGPT_Trainer
 
+from torchenhanced import Trainer
 
 def load_model(model_name: str, model_config: dict):
     """
@@ -23,7 +24,7 @@ def load_model(model_name: str, model_config: dict):
     return model_dict[model_name.lower()](**model_config)
 
 
-def load_trainer(model_name: str, trainer_config: dict):
+def load_trainer(model_name: str, trainer_config: dict) -> Trainer:
     """
     Loads and return trainer.
 
