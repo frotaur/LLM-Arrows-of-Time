@@ -1,16 +1,9 @@
 *.pt
 .DS_Store
 __pycache__
-wandb
-runs
 datavol
-newh5data
-tokidoki
 local_dataset.h5
 *.pyc
 saved_models
 *.state
-shake
-shake_h5
-/modules/tokenizers/shake_tokenizer
-test*.ipynb
+data

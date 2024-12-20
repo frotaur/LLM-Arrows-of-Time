@@ -104,7 +104,9 @@ def main_split_large(folder_path, target_path):
             if needed).
     """
     os.makedirs(target_path, exist_ok=True)
-
+    if folder_path=='':
+        folder_path= '.'
+    
     for filename in os.listdir(folder_path):
         print(f"Scanning and splitting {os.path.join(folder_path,filename)}")
 
@@ -136,6 +138,7 @@ def tokenize_folder(folder_path, tokenizer_path=None, no_preprocess=False):
             of the files. Default is False. (use True if tokenization
             crashed after sanitization, to not repeat preprocessing)
     """
+    folder_path = folder_path.rstrip("/")
     if tokenizer_path is None:
         raise ValueError(
             "Tokenizer path required, please specify with -t <tokenizer_path>"
@@ -145,8 +148,8 @@ def tokenize_folder(folder_path, tokenizer_path=None, no_preprocess=False):
             f"Tokenizer not found at path {tokenizer_path}. \nTokenizer path should be relative current folder."
         )
     else:
+        tokenizer_path = tokenizer_path.rstrip("/")
         tokenizer_name = os.path.basename(tokenizer_path)
-
     toki = tokenizer.get_tokenizer(m_path=tokenizer_path, m_name=tokenizer_name)
 
     target_path = f"{folder_path}_pt"
@@ -169,37 +172,3 @@ def tokenize_folder(folder_path, tokenizer_path=None, no_preprocess=False):
             os.remove(os.path.join(target_path, txtfile))
 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Split large txt files in a directory."
-    )
-
-    parser.add_argument("folder_path", help="Path to the folder containing txt files.")
-
-    # TODO: Add argument for tokenizer location
-    parser.add_argument(
-        "--tokenizer_path", "-t",
-        help="""
-        Relative path containing saved tokenizer to use. Mandatory parameter.
-        """,
-    )
-
-    parser.add_argument(
-        "--no_preprocess", "-p",
-        help="""
-        If specified, does not do the splitting and sanitization of the files
-        """,
-        action="store_true",
-    )
-
-    args = parser.parse_args()
-
-    print(
-        f"Tokenizing {args.folder_path} with tokenizer in path : {args.tokenizer_path}"
-    )
-
-    tokenize_folder(
-        args.folder_path,
-        tokenizer_name=args.tokenizer_path,
-        no_preprocess=args.no_preprocess,
-    )

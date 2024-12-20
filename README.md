@@ -56,47 +56,40 @@ This tag restores the codebase to a snapshot as it was for the first submission 
 This tag restores the codebase to a snapshot as it was for the submission of the rebuttal, during the paper review. Contains slightly update code, as well as additional `.json` files for experiments on Arabic, Hebrew and Tagalog, as well reversed French
 
 ## Tokenization
-The script `tokenize_to_h5.py` can be used to prepare a dataset for training. Given a .txt file, it will train a BPE tokenizer on it, then use it to tokenize the text, and save the tokenized dataset in `.h5` format.
+The script `tokenization_pipeline.py` can be used to prepare a dataset for training. Given a folder containing .txt files, it will train a BPE tokenizer on them, then use it to tokenize the text, and save the tokenized dataset in `.h5` format. The pipeline uses the huggingface implementation of BPE tokenizers.
 
 CC100 datasets can be downloaded [here](https://data.statmt.org/cc-100/). 
 ### Usage :
 
-To use `tokenize_to_h5.py`, first put a standalone `.txt` file inside a folder. Then, use `tokenize_to_h5.py` using the following arguments
+To use `tokenization_pipeline.py`, first put the `.txt` comprising the dataset in a folder. Then, use `tokenization_pipeline.py` using the following argument
 ``` 
-usage: tokenize_to_h5.py [-h] --txt_path TXT_PATH
+usage: tokenization_pipeline.py [-h] txt_path
 
-        Script for preparing a .txt cc-100 dataset for training. Creates the
-        custom tokenizer, and tokenizes the text with it to generate the .h5
-        file for training.
+        Script for preparing a .txt cc-100 dataset for training. Creates the custom tokenizer, and tokenizes the text with it to generate the .h5 file for training.
 
-        To make one of those things independently (e.g., only make the custom
-        tokenizer), see modules/tok_utils.
+        To make one of those things independently (e.g., only make the custom tokenizer), see tokenization_scripts.
         
 
+positional arguments:
+  txt_path    
+        The input folder to be tokenized. This script will save the following items:
+        1) A folder named '<txt_path>_pt', containing the tokenized data as pytorch tensors. A folder named '<txt_path>_h5' containing the tokenized h5py dataset. Example:
+            my_dataset/input.txt -> my_dataset_h5/input.h5
+                                    my_dataset_pt/input_tokenized.pt
+        2) a tokenizer in modules/tokenizers named '<txt_path>_tokenizer'. Example:  
+        code_dataset/input.txt -> modules/tokenizers/code_dataset_tokenizer/
+                      
+
 options:
-  -h, --help            show this help message and exit
-  --txt_path TXT_PATH, -t TXT_PATH
-                        
-                                The input file to be tokenized. This script will save the following
-                                items:
-                                1) given the path of a source plain text file, a folder of the same
-                                name as the containing folder of txt_path, with '_h5' appended at the
-                                end, as well as raw Pytorch tensors. Example:
-                                    -t my_dataset/input.txt -> my_dataset_h5/input.h5
-                                                               my_dataset_pt/input_tokenized.pt
-                                2) a tokenizer in modules/tokenizers called after the folder containing
-                                the txt dataset. Example:
-                                    -t code_dataset/input.txt -> modules/tokenizers/code_dataset_tokenizer/
+  -h, --help  show this help message and exit
 ```
 
 Then run the script.
 
-NOTE : tokenization of large .txt files (>100GB) might take a while (1,2 days). This script is NOT designed to pick up where it left off if it crashes. For bigger datasets, consider making a script (include `from modules.tok_utils import *`), and run, subsequently :  
-- `create_tokenizer(txt_path, tokenizer_folder,tokenizer_name)` : Will train the BPE tokenizer on the given .txt file, and save it in <tokenizer_folder>/<tokenizer_name>  
-- `tokenize_folder(os.path.dirname(txt_path), os.path.join(tokenizer_folder,tokenizer_name))` : Will tokenize the text file, splitting it into subfiles if necessary for memory reasons. Saved the tokenized tensors as `.pt`. If it crashes mid-way, can be restarted, and will pickup from last checkpoint  
-- `make_h5(os.path.dirname(txt_path)+'_pt', dataset_name, destination_folder,toki)` : Will convert a folder containing `.pt` files into a single `.h5` dataset, ready for training. `toki` is an `AutoTokenizer` instance, used only for visualization of the process.
-
-For more informations on these functions, look at docstring comments in `modules/tok_utils`
+NOTE : tokenization of large .txt files (>100GB) might take a while (1,2 days). This script is NOT designed to pick up where it left off if it crashes. For bigger datasets consider using the scripts in `tokenization_scripts/`:  
+- `create_tokenizer.py` : Will train the BPE tokenizer on the given .txt file, and save it. See `python create_tokenizer.py --help`
+- `tokenize_txt.py` : Will tokenize the text files, splitting it into subfiles if necessary for memory reasons. Saves the tokenized tensors as `.pt`. If it crashes mid-way, can be restarted, and will pickup from last checkpoint. See `python tokenize_txt.py --help`.
+- `tensor_to_h5 : Will convert a folder containing `.pt` files into a single `.h5` dataset, ready for training. See `python tensor_to_h5.py --help`.
 
 ### Tokenizer class
 
