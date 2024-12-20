@@ -66,10 +66,10 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "txt_path",
+        "txt_folder",
         type=str,
         help="""  
-        The input folder to be tokenized. This script will save the following items:
+        The folder of .txt files to be tokenized. This script will save the following items:
         1) A folder named '<txt_path>_pt', containing the tokenized data as pytorch tensors. A folder named '<txt_path>_h5' containing the tokenized h5py dataset. Example:
             my_dataset/input.txt -> my_dataset_h5/input.h5
                                     my_dataset_pt/input_tokenized.pt

@@ -63,7 +63,7 @@ CC100 datasets can be downloaded [here](https://data.statmt.org/cc-100/).
 
 To use `tokenization_pipeline.py`, first put the `.txt` comprising the dataset in a folder. Then, use `tokenization_pipeline.py` using the following argument
 ``` 
-usage: tokenization_pipeline.py [-h] txt_path
+usage: tokenization_pipeline.py [-h] txt_folder
 
         Script for preparing a .txt cc-100 dataset for training. Creates the custom tokenizer, and tokenizes the text with it to generate the .h5 file for training.
 
@@ -71,8 +71,8 @@ usage: tokenization_pipeline.py [-h] txt_path
         
 
 positional arguments:
-  txt_path    
-        The input folder to be tokenized. This script will save the following items:
+  txt_folder    
+        The folder of .txt to be tokenized. This script will save the following items:
         1) A folder named '<txt_path>_pt', containing the tokenized data as pytorch tensors. A folder named '<txt_path>_h5' containing the tokenized h5py dataset. Example:
             my_dataset/input.txt -> my_dataset_h5/input.h5
                                     my_dataset_pt/input_tokenized.pt
