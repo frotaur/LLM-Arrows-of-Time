@@ -6,10 +6,8 @@ File should contain regular spaces, otherwise it might crash with OOM error.
 """
 
 import os
-import argparse
-
 from transformers import AutoTokenizer
-
+from pathlib import Path
 
 # Default chunk size is 10MB
 def read_in_chunks(
@@ -44,15 +42,17 @@ def read_in_lines(
         batch_size : number of lines to yield in each batch
         phrase_size : approx number of characters in a line
     """
+    file_path = Path(file_path)
     counter = 0
     total_line_weight = 0
 
     # check if file_path is a file
-    if not os.path.isfile(file_path):
-        file_paths = [os.path.join(file_path, f) for f in os.listdir(file_path) if f.endswith(".txt")]
+    if file_path.is_dir():
+        file_paths = [f for f in file_path.glob('*.txt')]
     else :
         file_paths = [file_path]
     
+    print('file_paths : ',file_paths)   
     for file_path in file_paths:
         print(f"Processing file : {file_path}")
         with open(file_path, "r", encoding="utf-8", errors="ignore") as file:
@@ -89,11 +89,11 @@ def read_in_lines(
 
                 yield lines
         
-        print('finished processing file : ',file_path)
+        print('finished processing : ',file_path)
 
 
 def create_tokenizer(
-    txt_path, save_directory=None, tokenizer_name=None, vocab_size=50257
+    txt_folder : str|Path, save_directory=None, tokenizer_name=None, vocab_size=50257
 ):
     """
     Creates a custom BPE huggingface tokenizer from a .txt file. The tokenizer
@@ -103,7 +103,7 @@ def create_tokenizer(
     spaces, it will probably crash with out of memory error.
 
     Args:
-        txt_path: Path to the .txt file to use for training the tokenizer.
+        txt_folder: Path to the folder containing .txt files to use for training the tokenizer.
         save_directory: Directory where the tokenizer will be saved. If None,
             will be saved in the same directory as the .txt file.
         tokenizer_name: Name of the tokenizer. If None, will be the name of the
@@ -111,20 +111,24 @@ def create_tokenizer(
         vocab_size: Size of the vocabulary to use for the tokenizer. Default is
             50257, which is the GPT2 vocabulary size.
     """
+    txt_folder = Path(txt_folder)
+    assert txt_folder.is_dir(), f"txt_folder should be a directory, got {txt_folder}"
+
     if save_directory is None:
-        save_directory = os.path.dirname(txt_path)
-        if(save_directory == ''):
-            save_directory = '.'
+        save_directory = txt_folder
+
+    save_directory = Path(save_directory)
+
 
     if tokenizer_name is None:
-        tokenizer_name = f'{os.path.basename(txt_path).split(".")[0]}_tokenizer'
+        tokenizer_name = f'{txt_folder.name}_tokenizer'
         print(f"No tokenizer name provided, defaulting to: {tokenizer_name}")
 
     # Load gpt2 tokenizer, to get same vocab_size and special tokens
     toke_base = AutoTokenizer.from_pretrained("gpt2", use_fast=True)
     # .txt dataset (full dataset in the txt file, for now.)
     toke_mine = toke_base.train_new_from_iterator(
-        read_in_lines(txt_path), vocab_size=vocab_size
+        read_in_lines(txt_folder), vocab_size=vocab_size
     )  # Train new tokenizer using BPE
     toke_mine.save_pretrained(os.path.join(save_directory, tokenizer_name))
 

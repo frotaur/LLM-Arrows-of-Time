@@ -5,7 +5,7 @@ Base training function for language models.
 import os
 import json
 import shutil
-import pathlib
+from pathlib import Path
 
 import numpy as np
 
@@ -31,7 +31,6 @@ def train(
     project_name: str = None,
     run_name: str = None,
     step_pickup: bool = True,
-    val_batch_size: int = 250,
     cooldown_now: bool = False,
 ):
     """
@@ -51,8 +50,8 @@ def train(
         cooldown_now: If true, will cool down the learning rate to 0, for 10% of the training time.
     """
 
-    cur_path = pathlib.Path(__file__).parent.absolute().as_posix()
-
+    cur_path = Path(__file__).parent.absolute()
+    file_location = Path(file_location)
     try:
         with open(file_location, "r") as f:
             configo = json.load(f)
@@ -65,25 +64,24 @@ def train(
 
 
     if run_name is None:
-        run_name = os.path.splitext(os.path.basename(file_location))[0]
+        run_name = file_location.stem
 
     tokenizer_path = training_params.get("tokenizer_path",None)
-
-    print("TOKENIZER PATH : ", os.path.join(cur_path, tokenizer_path))
+    tokenizer_path = cur_path / Path(tokenizer_path)
+    print("TOKENIZER PATH : ", tokenizer_path)
     if tokenizer_path is None:
         raise (
             ValueError(
                 "Tokenizer path required, please specify in the .json file with key 'tokenizer_path'"
             )
         )
-    if not os.path.exists(os.path.join(cur_path, tokenizer_path)):
+    if not tokenizer_path.is_dir():
         raise (
-            FileNotFoundError(f"Tokenizer not found at path {os.path.join(cur_path,tokenizer_path)}. \n \
-                                Tokenizer path should be relative to train_script.py.")
+            FileNotFoundError(f"Tokenizer not found at path {tokenizer_path}. \n \
+                                Tokenizer path should be relative to train.py directory.")
         )
 
-    tokenizer_path = os.path.join(cur_path, tokenizer_path)
-    tokenizer = get_tokenizer(m_path=tokenizer_path)
+    tokenizer = get_tokenizer(m_path=tokenizer_path.as_posix())
 
     if not os.path.exists(training_params["dataset_folder"]):
         raise FileNotFoundError(f"Tried to find dataset folder at \
@@ -97,7 +95,7 @@ def train(
     else:
         parallel = None
 
-    # We ask how many validation steps. To get these, we assume 5% of training
+    # We ask how many validation steps. To get these, we assume 4% of training
     # time allocated for validation.
     valid_steps = training_params["valid_steps"]
     valid_percent_time = 4  # Time spent validating, in percentage
@@ -189,9 +187,16 @@ def train(
 
     motherDataset = Subset(motherDataset, list(indices))  # Shuffled dataset
 
-    # To keep it constant even if we switch batch_size, I take val_batch_size*valid_steps datapoints in the validation set
+    val_batch_size = training_params.get("val_batch_size", None)
+    if val_batch_size is None:
+        val_batch_size = training_params["batch_size"]
+        print("WARNING : val_batch_size not specified, using batch_size instead.")
+
+    # I take val_batch_size*valid_steps datapoints in the validation set
     val_inds = valid_steps * val_batch_size
+
     # Validation, last portion of dataset
+    assert len(motherDataset) > val_inds, """There is not enough data for validation! This can be fixed either by reducing the number of validation steps, or by reducing the validation batch size."""
     val_range = range(len(motherDataset) - val_inds, len(motherDataset))
     # Training, first portion of dataset
     keep_range = range(len(motherDataset) - val_inds)

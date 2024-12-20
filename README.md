@@ -25,8 +25,8 @@
   <br>
 
   <figure>
-    <img src='pics/en-fr.train-valid.combined_with_inset.svg'>
-    <legend>English vs French validation losses (French training losses in the zoom-in, early loss values cropped for readability). </legend>
+    <img src='pics/all-med-lang.png'>
+    <legend> Losses during training for different languages, trained forwards and backwards. For all languages, the backward model does slightly worse! </legend>
   </figure>
 
 </div>
@@ -59,6 +59,9 @@ This tag restores the codebase to a snapshot as it was for the submission of the
 The script `tokenization_pipeline.py` can be used to prepare a dataset for training. Given a folder containing .txt files, it will train a BPE tokenizer on them, then use it to tokenize the text, and save the tokenized dataset in `.h5` format. The pipeline uses the huggingface implementation of BPE tokenizers.
 
 CC100 datasets can be downloaded [here](https://data.statmt.org/cc-100/). 
+
+### Quick test :
+We provide the folder `shake_test` to test the tokenization pipeline. Simply run `python tokenization_pipeline.py shake_test`. It should generate a folder `shake_test_h5` which contains the tokenized data, as well as `modules/tokenizers/shake_test_tokenizer`, which is the BPE tokenizer that was just trained.
 ### Usage :
 
 To use `tokenization_pipeline.py`, first put the `.txt` comprising the dataset in a folder. Then, use `tokenization_pipeline.py` using the following argument
@@ -112,6 +115,8 @@ Note: the scripts in `modules/tok_utils/` can, to some degree, be run independen
 
 ## Training
 
+### Quick Test
+After generating the shakespear dataset (see _Quick Test_ in the tokenization section), you can run `python train_gpt.py TrainParams/blueprint.json -d <device>`. This should launch the training, logging using wandb. You may be need to be logged into wandb.
 ### Scripts
 For training, 4 scripts are provided. All are designed to train models on the dataset generated with the above method.
 - `train_gpt.py` : Trains GPT model on a single GPU.
@@ -151,43 +156,45 @@ python train_script.py path/to/config.json -d cuda:0 -p MyTrainingProject -s
 ### JSON config file
 To run the training script, we need to provide it with a path to the JSON config file. Their format slightly depends if training a GPT, GRU or LSTM model. In a nutshell, they contain all the necessary hyperparameters for a training run.
 
+We provide the file `TrainParams\blueprint.json`, as a fully formatted json for a training run. To design other experiments, simply modify this file.
+
 Here is a description of each entry : 
 
 ```json
 {
-    "model_params": {                              # Model parameters
-        "vocab_size": 50257,                       # Vocabulary size
-        "n_layers": 12,                            # Number of Transformer Blocks
-        "n_heads": 12,                             # Number of attention heads
-        "embed_dim": 768,                          # Number of hidden/embedding dimensions
-        "attn_length": 256,                        # Attention Length
-        "mlp_ratio": 4.0,                          # MLP ratio
-        "dropout": 0.1,                            # Dropout inside tranformer blocks
-        "embd_dropout": null                       # Dropout for the token embeddings. Defaults to 0.
+    "model_params": {
+        "vocab_size": 50257, // Vocabulary size. Should match the vocab size of the tokenizer used.
+        "n_layers": 24, // Number of transformer layers.
+        "n_heads": 16, // Number of attention heads.
+        "embed_dim": 1024, // Dimension of the embeddings.
+        "attn_length": 256, // Length of the attention window.
+        "mlp_ratio": 4.0, // Multiplier for the hidden dimension of the MLP.
+        "dropout": 0.1, // Dropout rate.
+        "embd_dropout": null // Dropout rate for the position embeddings.
     },
-    "training_params": { 
-        "dataset_folder": "english/english.h5",    # Location of .h5 dataset to train on
-        "tokenizer_path": "modules/tokenizers/en_tokenizer", # Location of the tokenizer to be used for visualizing generated sentences during validation
-        "batch_size": 180,                         # Batch size
-        "aggregate": 1,                            # Number of times to aggregate gradients before gradient step. (effective batch_size = aggregate*batch_size)
-        "backwards": false,                        # Whether to train in the backwards direction
-        "steps_to_train": null,                    # Number of gradient steps to train. Defaults to one epoch of the dataset.
-        "save_every": 3000,                        # Number of steps between each save of the training state.
-        "backup_every": 15000,                     # Number of steps between a backup of the training state.
-        "step_log": 400,                           # Number of steps between each log of training loss in wandb
-        "valid_steps": 1000,                       # Number of batches seen during one validation.
-        "save_loc": "datavol/vassilis/runs"        # folder in which to save the training state.,
-        "fast_scrambling": true,                   # if true, will increase dataset scrambling speed, with the price of cutting the dataset if it has more than 3 billion examples (otherwise, RAM usage > 100 Gb)
-        "cooldown_finish": 0.15                    # What fraction of the total steps to spend 'cooling down' the LR to get an optimal loss
-
+    "training_params": {
+        "dataset_folder": "datavol/french/french.h5", // Location of h5 folder generated with the tokenization pipeline
+        "tokenizer_path": "modules/tokenizers/fr_tokenizer", // Path to the tokenizer used to generate the dataset. Only used for logging purposes.
+        "batch_size": 90, // Batch size for training
+        "aggregate": 2, // Number of batches to aggregate before backpropagating
+        "backwards": false, // If true, train the model in reverse.
+        "permutation" : null,// Optional; a list containing a permutation of attn_length integers. If provided, ignore the 'backwards' parameter, and instead use this permutation to shuffle the input sequence. 
+        "steps_to_train": null, // Number of steps to train. If null, train for one epoch.
+        "save_every": 3000, // Save the model every <save_every> steps. Overwrites the previous checkpoint.
+        "backup_every": 15000, // Save a backup of the model every <backup_every> steps. Does not overwrite the previous checkpoint.
+        "step_log": 200, // Log training progress every <step_log> steps.
+        "valid_steps": 1000, // Size of the validation set, in batches. 
+        "val_batch_size": 200, // Validation batch size, optional. If not given, will be the same as the training batch size. Useful to keep the validation dataset exactly the same, despite different training batch size.
+        "save_loc": "datavol/refinements/runs/",  // Location to save the training state. Used to resume training from a checkpoint.
+        "fast_scrambling": false, // Uses imperfect scrambling if true. Useful if dataset is so large that the list of integers cannot be stored in memory.
+        "cooldown_finish": 0.15 // Fraction of the training steps dedicated to cooldown. Recommended between 0.1 and 0.2.
     },
     "optim_params": {
-        "lr": 0.0001,                              # Base learning rate
-        "warmup_steps": 4000,                      # Number of batches until learning rate warms up
-        "lr_init": 1e-07,                          # Initial learning rate, for warmup
+        "lr": 0.0001, // Learning rate
+        "warmup_steps": 10000, // Number of warmup steps
     }
 }
-```
+``` 
 
 ## Citation
 If you find this repository useful in your research, please consider citing our work

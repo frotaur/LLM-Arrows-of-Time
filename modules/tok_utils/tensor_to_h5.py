@@ -30,6 +30,7 @@ def make_h5(
         view_tokenizer : A tokenizer to use for viewing dataset snippets
             during conversion. If None, will use the GPT2 tokenizer.
     """
+    pt_data_folder = Path(pt_data_folder)
 
     if view_tokenizer is None:
         view_tokenizer = tokenizer.get_tokenizer(m_name="gpt2")
@@ -39,7 +40,11 @@ def make_h5(
               still work correctly.""")
 
     if destination_folder is None:
-        destination_folder = '.'
+        destination_folder = Path('.')
+    else:
+        destination_folder = Path(destination_folder)
+
+    destination_folder.mkdir(parents=True, exist_ok=True)
 
     if dataset_fname is None:
         dataset_fname = "dataset.h5"
@@ -47,35 +52,29 @@ def make_h5(
     if not dataset_fname.endswith(".h5"):
         dataset_fname = f"{dataset_fname}.h5"
 
-    tarname = os.path.join(destination_folder, dataset_fname)
-    os.makedirs(os.path.dirname(tarname), exist_ok=True)
+    tarname = destination_folder / dataset_fname
+    assert pt_data_folder.is_dir(), f"{pt_data_folder} is not an existing directory"
 
-    if os.path.isdir(pt_data_folder):
-        with h5py.File(tarname, "w") as f:
-            # note the maxshape parameter
-            dset = f.create_dataset(
-                "tokens", (0,), maxshape=(None,), dtype="int32"
-            )  # note the maxshape parameter
+    with h5py.File(tarname, "w") as f:
+        # note the maxshape parameter
+        dset = f.create_dataset(
+            "tokens", (0,), maxshape=(None,), dtype="int32"
+        )  # note the maxshape parameter
 
-            current_index = 0
-            for file in tqdm(os.listdir(pt_data_folder)):
-                if os.path.splitext(file)[1] == ".pt":
-                    pt_file = os.path.join(pt_data_folder, file)
-                    tensor = torch.load(pt_file, map_location=torch.device("cpu"))
-                    length = tensor.shape[1]
+        current_index = 0
+        for pt_file in tqdm(pt_data_folder.glob("*.pt")):
+            tensor = torch.load(pt_file, map_location=torch.device("cpu"))
+            length = tensor.shape[1]
 
-                    print("snippet : \n", view_tokenizer.detokenize(tensor[:, :40]))
-                    # Resize the dataset to accommodate the new data
-                    dset.resize((current_index + length,))
+            print("snippet : \n", view_tokenizer.detokenize(tensor[:, :40]))
+            # Resize the dataset to accommodate the new data
+            dset.resize((current_index + length,))
 
-                    # Add the new data to the dataset
-                    dset[current_index : current_index + length] = (
-                        tensor.numpy().squeeze()
-                    )
-                    print(dset[0:10])
-                    # Update the current ind
-                    current_index += length
-    else:
-        raise ValueError(f"{pt_data_folder} not found")
-
+            # Add the new data to the dataset
+            dset[current_index : current_index + length] = (
+                tensor.numpy().squeeze()
+            )
+            print(dset[0:10])
+            # Update the current ind
+            current_index += length
 
